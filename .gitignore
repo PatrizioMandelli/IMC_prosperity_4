@@ -1,0 +1,12 @@
+# Ignore python virtual environments
+.venv/
+__pycache__/
+
+# Ignore data files 
+data/
+
+# Ignore local backtest runs
+*.log
+
+# Ignore specific bot strategies 
+my_bot/
