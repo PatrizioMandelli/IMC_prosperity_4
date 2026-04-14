@@ -1,6 +1,4 @@
-<<<<<<< HEAD
-# prosperity4_prep
-Backtester + visualizer for Prosperity 4
+# Backtester + visualizer for Prosperity 4
 
 
 ## 1. Initial Setup
