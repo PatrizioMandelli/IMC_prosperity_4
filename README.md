@@ -86,4 +86,3 @@ When new assets are introduced, they will have different maximum inventory limit
        "NEW_ASSET": 50 # Add new ones here
    }
    ```
->>>>>>> 2c1de4a (Fixed backtester data loading and pnl stitching)
