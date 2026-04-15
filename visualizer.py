@@ -42,6 +42,12 @@ else:
 
 # 3. Extract the Sections
 if content:
+    if content and content.strip().startswith('{'):
+        # formato JSON ufficiale
+        data = json.loads(content)
+        content = data.get('activitiesLog', '')
+        # converti \n in newline reali
+        content = "Activities log:\n" + content.replace('\\n', '\n')
     # Extract Activities
     if "Activities log:" in content:
         parts = content.split("Activities log:")
@@ -132,7 +138,7 @@ if activities_text:
                 if not sym_trades.empty:
                     sym_trades['trade_delta'] = 0
 
-                    # The strict bot name we discovered earlier
+                    # The strict my_bot name we discovered earlier
                     BOT_NAME = "SUBMISSION"
 
                     sym_trades.loc[sym_trades['buyer'] == BOT_NAME,

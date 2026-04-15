@@ -249,7 +249,7 @@ def analyze_simulation_determinism(df_trades):
         avg_price=('price', 'mean')
     ).reset_index()
 
-    # If a timestamp has large trades on multiple days, the bot is hardcoded to a clock!
+    # If a timestamp has large trades on multiple days, the my_bot is hardcoded to a clock!
     suspicious_times = time_frequency[time_frequency['days_active'] > 1].sort_values(
         by='total_volume', ascending=False)
 
@@ -347,7 +347,7 @@ def profile_bot_behavior(df_prices, df_trades):
         sym = sig["symbol"]
         target_size = sig["size"]
 
-        # 1. Isolate the specific bot's trades
+        # 1. Isolate the specific my_bot's trades
         df_bot = df_trades[(df_trades['symbol'] == sym) & (
             df_trades['quantity'] == target_size)].copy()
 

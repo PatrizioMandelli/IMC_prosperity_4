@@ -168,7 +168,7 @@ def risk_metrics_full_period(results: list[BacktestResult]) -> RiskMetrics:
             buyer = str(t.buyer).strip()
             seller = str(t.seller).strip()
 
-            # The local engine uses an empty string "" for your bot
+            # The local engine uses an empty string "" for your my_bot
             is_buyer = buyer == "SUBMISSION"
             is_seller = seller == "SUBMISSION"
 
