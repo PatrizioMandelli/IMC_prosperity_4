@@ -3,3 +3,7 @@ plotly
 streamlit
 typer
 jsonpickle
+seaborn
+orjson
+IPython
+tqdm
