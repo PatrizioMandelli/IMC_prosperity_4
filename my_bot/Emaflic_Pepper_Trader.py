@@ -25,6 +25,7 @@ class Trader:
             order_depth: OrderDepth = state.order_depths[product]
             orders: List[Order] = []
 
+            # Protezione Book Vuoto
             if not order_depth.buy_orders or not order_depth.sell_orders:
                 continue
 
@@ -33,68 +34,104 @@ class Trader:
             best_bid = max(order_depth.buy_orders.keys())
             mid_price = (best_ask + best_bid) / 2
 
+            # 2. Calcolo dei volumi totali per la riga del VWAP
+            total_volume = 0
+            total_value = 0
+
+            # Sommiamo il lato Bid (i volumi qui sono già positivi)
+            for price, vol in order_depth.buy_orders.items():
+                total_volume += vol
+                total_value += price * vol
+
+            # Sommiamo il lato Ask (ATTENZIONE: usiamo abs(vol) perché i volumi sono negativi in Prosperity)
+            for price, vol in order_depth.sell_orders.items():
+                abs_vol = abs(vol)
+                total_volume += abs_vol
+                total_value += price * abs_vol
+
+            # Riga VWAP
+            if total_volume > 0:
+                vwap = (total_value / total_volume)
+
             # 3. STORICO (max 40 tick)
             history.append(mid_price)
             if len(history) > 40:
                 history.pop(0)
 
-            # 4. CALCOLO TARGET
+            # 4. CALCOLO TARGET E TREND
             core_target = 0
             satellite_bias = 0
+            trend_adjusted_fair_value = vwap  # Default se non abbiamo abbastanza dati
 
             if len(history) >= 40:
-                # --- TREND CORE: SMA10 vs SMA40 ---
-                # Sfrutta il trend lineare +30% in 3 giorni.
-                # Se fast > slow, vogliamo essere long fino a 60 unità.
+                # --- TREND CORE: 70 unità ---
                 fast_sma = sum(history[-10:]) / 10
                 slow_sma = sum(history[-40:]) / 40
-                if fast_sma > slow_sma + 0.5:
-                    core_target = 40
-                elif fast_sma < slow_sma - 0.5:
-                    core_target = -40
 
-                # --- SATELLITE MEAN REVERSION (Correlazione -0.86, 2600+ istanze) ---
+                # Calcoliamo la forza e direzione del trend
+                trend_strength = fast_sma - slow_sma
+
+                if trend_strength > 0.5:
+                    core_target = 70
+                elif trend_strength < -0.5:
+                    core_target = -70
+
+                # --- SATELLITE SPIKE-UNLOAD (DISATTIVATO TEMPORANEAMENTE) ---
+                """
                 sma5 = sum(history[-5:]) / 5
                 deviation = mid_price - sma5
 
-                # Livello A: Spike confermata (deviation > 4.0) → bias max ±20
-                if abs(deviation) > 4.0:
-                    satellite_bias = -20 if deviation > 0 else 20
-                # Livello B: Pre-allarme (deviation > 2.5, 18% prob. spike imminente) → bias ±10
-                elif abs(deviation) > 2.5:
-                    satellite_bias = -10 if deviation > 0 else 10
-                # Nota: NON usiamo il volume come segnale satellite. In un trend rialzista
-                # ask sottile ≠ spike da fadeare, è il trend che prosegue.
+                # Logica Trend UP
+                if core_target > 0:
+                    if deviation > 4.0:
+                        satellite_bias = -30  # Scarico pesantissimo
+                    elif deviation > 2.5:
+                        satellite_bias = -15  # Scarico parziale
+                    elif deviation < -4.0:
+                        satellite_bias = 10   # Buy the Dip
 
-            # 5. TARGET FINALE (core + satellite, clipped ai limiti)
+                # Logica Trend DOWN
+                elif core_target < 0:
+                    if deviation < -4.0:
+                        satellite_bias = 30   # Copertura Short
+                    elif deviation < -2.5:
+                        satellite_bias = 15   # Copertura parziale
+                    elif deviation > 4.0:
+                        satellite_bias = -10  # Sell the Rip
+                """
+
+            # 5. TARGET FINALE (Clipped a 80)
             POSITION_LIMIT = 80
             final_target = max(min(core_target + satellite_bias, POSITION_LIMIT), -POSITION_LIMIT)
 
-            # 6. PRICING DINAMICO
-            # Default: ordini passivi al top of book (nessuna fee di crossing).
-            # Se siamo lontani dal target (>5 unità), ordini aggressivi che attraversano lo spread
-            # per garantire il fill e inseguire il trend.
+            # 6. GESTIONE ORDINI CHIRURGICA
             current_pos = state.position.get(product, 0)
-            inventory_offset = current_pos - final_target
+            desired_qty = final_target - current_pos
 
-            my_bid_price = best_bid      # passivo: aspettiamo fill al miglior bid
-            my_ask_price = best_ask      # passivo: aspettiamo fill al miglior ask
+            # 7. PRICING DINAMICO (Adattivo rispetto al Trend-Adjusted Fair Value)
+            if desired_qty > 0:
+                # Dobbiamo comprare.
+                # Se l'Ask attuale è inferiore al nostro TAFV (il prezzo è destinato a salire
+                # più in alto di quanto costa comprare ora), compriamo aggressivamente crossando lo spread.
+                if best_ask < trend_adjusted_fair_value:
+                    price = best_ask
+                else:
+                    # Se il prezzo attuale ha già "prezzato" il trend, ci mettiamo passivi sul bid
+                    price = best_bid + 1
 
-            if inventory_offset > 5:
-                # Troppo Long rispetto al target: vendiamo aggressivi (hit il bid)
-                my_ask_price = best_bid
-            elif inventory_offset < -5:
-                # Troppo Short rispetto al target: compriamo aggressivi (hit l'ask)
-                my_bid_price = best_ask
+                orders.append(Order(product, price, desired_qty))
 
-            # 7. INVIO ORDINI
-            max_buy = POSITION_LIMIT - current_pos
-            max_sell = -POSITION_LIMIT - current_pos
+            elif desired_qty < 0:
+                # Dobbiamo vendere.
+                # Se il Bid attuale è ancora superiore al nostro TAFV (il prezzo è destinato a
+                # scendere più in basso di quanto incassiamo ora), vendiamo aggressivamente.
+                if best_bid > trend_adjusted_fair_value:
+                    price = best_bid
+                else:
+                    # Altrimenti ci mettiamo passivi sull'ask per raccogliere spread
+                    price = best_ask - 1
 
-            if max_buy > 0:
-                orders.append(Order(product, my_bid_price, max_buy))
-            if max_sell < 0:
-                orders.append(Order(product, my_ask_price, max_sell))
+                orders.append(Order(product, price, desired_qty))
 
             result[product] = orders
 
