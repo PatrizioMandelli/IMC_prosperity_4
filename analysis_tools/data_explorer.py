@@ -9,7 +9,7 @@ pd.set_option('display.max_columns', None)
 pd.set_option('display.width', 1000)
 
 # --- CONFIGURATION ---
-DATA_DIR = "./data/round1/"  # Change this when new rounds drop
+DATA_DIR = "../data/round1/"  # Change this when new rounds drop
 
 
 def load_data():
