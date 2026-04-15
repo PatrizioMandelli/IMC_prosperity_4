@@ -2,11 +2,5 @@
 ../../.venv/
 __pycache__/
 
-# Ignore data files 
-data/
-
 # Ignore local backtest runs
 *.log
-
-# Ignore specific my_bot strategies
-my_bot/
