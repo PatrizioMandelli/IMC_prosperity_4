@@ -34,16 +34,16 @@ Because the data files are massive, they are not included in this repository.
 ## 4. Running a Backtest
 To test your bot on Day -1 data, you can either run this command in your terminal to obtain only the base metrics:
 ```bash
-python -m prosperity4bt my_bot/trader.py 0--1 --data ./data --out ./run_day_minus_1.log
+python -m prosperity4bt my_bot/Emaflic_Osmium_Trader(worse).py 0--1 --data ./data --out ./run_day_minus_1.log
 ``` 
 If you wish to quickly see the base plots as well, you can instead use:
 ```bash
-python -m prosperity4bt my_bot/trader.py 0--1 --data ./data --out ./run.log; python quick_plot.py
+python -m prosperity4bt my_bot/Emaflic_Osmium_Trader(worse).py 0--1 --data ./data --out ./run.log; python quick_plot.py
 ``` 
 
 If you want to test on all the days use:
 ```bash
-python -m prosperity4bt my_bot/trader.py 1 --data ./data --out ./run.log
+python -m prosperity4bt my_bot/Emaflic_Osmium_Trader(worse).py 1 --data ./data --out ./run.log
 ```
 
 ## 5. [OPTIONAL] Visualizing the Results with Streamlit
@@ -67,11 +67,11 @@ As the competition progresses, the exchange will release new days and new assets
 3. Update your terminal command to target the new round and day format: `[Round]-[Day]`.
    * *Example for Round 1, Day 2:*
      ```bash
-     python -m prosperity4bt my_bot/trader.py 1--2 --data ./data --out ./run.log
+     python -m prosperity4bt my_bot/Emaflic_Osmium_Trader(worse).py 1--2 --data ./data --out ./run.log
      ```
      or
      ```bash
-     python -m prosperity4bt my_bot/trader.py 1 --data ./data --out ./run.log
+     python -m prosperity4bt my_bot/Emaflic_Osmium_Trader(worse).py 1 --data ./data --out ./run.log
      ```
 
 ### B. Updating Position Limits (Visualizer)
