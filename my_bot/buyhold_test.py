@@ -19,7 +19,7 @@ class Trader:
             orders: List[Order] = []
 
             # 1. POSIZIONE ATTUALE E LIMITI
-            POSITION_LIMIT = 70
+            POSITION_LIMIT = 80
             current_pos = state.position.get(product, 0)
 
             # 2. CALCOLO QUANTO MANCA AL MASSIMO
