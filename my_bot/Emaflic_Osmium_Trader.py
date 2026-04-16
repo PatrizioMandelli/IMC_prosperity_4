@@ -3,6 +3,24 @@ from datamodel import OrderDepth, TradingState, Order
 
 
 class Trader:
+    """
+    ASH_COATED_OSMIUM v4 — FV-anchored sizing
+    ==========================================
+    Core insight (user's): FV=10000 is fixed and known.
+    Price always reverts. Every unit bought below 10000 will be sold above.
+    Every unit sold above 10000 will be bought back below.
+
+    Therefore: size should scale with distance from FV, not be fixed at half-capacity.
+
+    Improvements over original:
+    1. buy_size  = f(FV - mid): full capacity when far below FV, zero when above FV
+       sell_size = f(mid - FV): full capacity when far above FV, zero when below FV
+    2. Tight quote gets 80% of size when deviating (we want fills at best price)
+       Deep quote gets 20% (keeps some liquidity deeper as backstop)
+    3. Deep sell fixed to my_ask+2 (was asymmetric +1 in original)
+    4. my_bid capped at FV-1, my_ask floored at FV+1 (same safety net)
+    5. Step 1 arbitrage unchanged (still eats anything that crosses FV)
+    """
 
     def run(self, state: TradingState):
         result = {}
@@ -10,113 +28,87 @@ class Trader:
 
         product = "ASH_COATED_OSMIUM"
         if product in state.order_depths:
-            result[product] = self.osmium_strategy(state, state.order_depths[product])
+            result[product] = self.osmium_strategy(
+                state, state.order_depths[product]
+            )
 
         return result, conversions, ""
 
-    def osmium_strategy(self, state: TradingState, order_depth: OrderDepth) -> List[Order]:
+    def osmium_strategy(
+        self, state: TradingState, order_depth: OrderDepth
+    ) -> List[Order]:
+
         orders: List[Order] = []
-
-        PRODUCT = "ASH_COATED_OSMIUM"
+        FV    = 10000
         LIMIT = 80
-        FALLBACK_FV = 10000
+        # How many ticks of deviation = full capacity commitment
+        # At DEV_FULL=5: mid=9995 or below -> buy full 80 units
+        DEV_FULL = 5.0
 
-        # --- TUNABLE PARAMS ---
-        TIGHT_SPREAD = 3       # half-spread on tight quote (was 1)
-        DEEP_SPREAD = 5        # half-spread on deep quote (was 3)
-        SKEW_FACTOR = 0.05     # FV shift per unit of inventory
-        TIGHT_FRAC = 0.5       # fraction of capacity on tight quote
+        pos       = state.position.get("ASH_COATED_OSMIUM", 0)
+        buy_cap   =  LIMIT - pos
+        sell_cap  = -LIMIT - pos   # negative
 
-        current_pos = state.position.get(PRODUCT, 0)
+        best_ask = min(order_depth.sell_orders) if order_depth.sell_orders else FV + 8
+        best_bid = max(order_depth.buy_orders)  if order_depth.buy_orders  else FV - 8
+        fair     = (best_ask + best_bid) / 2
+        dev      = fair - FV   # negative = cheap, positive = expensive
 
-        # ==============================
-        # STEP 0: DYNAMIC FAIR VALUE
-        # ==============================
-        # Microprice: volume-weighted mid, shifts FV toward the thinner side of the book
-        if order_depth.buy_orders and order_depth.sell_orders:
-            best_bid = max(order_depth.buy_orders.keys())
-            best_ask = min(order_depth.sell_orders.keys())
-            bid_vol = abs(order_depth.buy_orders[best_bid])
-            ask_vol = abs(order_depth.sell_orders[best_ask])
-            fair_value = (best_bid * ask_vol + best_ask * bid_vol) / (bid_vol + ask_vol)
-        else:
-            fair_value = FALLBACK_FV
-
-        # Inventory skew: if long, lower FV to sell more aggressively (and vice versa)
-        fair_value -= current_pos * SKEW_FACTOR
-
-        # Integer boundaries for quoting
-        fv_int = int(round(fair_value))
-
-        # CAPACITY TRACKING
-        buy_capacity = LIMIT - current_pos
-        sell_capacity = -LIMIT - current_pos  # negative number
-
-        # ==============================
-        # STEP 1: TAKE LIQUIDITY (Arbitrage + Inventory Unwind)
-        # ==============================
-        # Take any ask below FV (buy cheap)
+        # ── Step 1: Take mispriced liquidity ──────────────────────────────────
         if order_depth.sell_orders:
-            for ask_price, ask_vol in sorted(order_depth.sell_orders.items()):
-                if ask_price < fv_int and buy_capacity > 0:
-                    take_vol = min(buy_capacity, abs(ask_vol))
-                    if take_vol > 0:
-                        orders.append(Order(PRODUCT, ask_price, take_vol))
-                        buy_capacity -= take_vol
-                # Inventory unwind: if short, also take asks AT fair value to flatten
-                elif ask_price == fv_int and current_pos < -10 and buy_capacity > 0:
-                    take_vol = min(buy_capacity, abs(ask_vol), abs(current_pos))
-                    if take_vol > 0:
-                        orders.append(Order(PRODUCT, ask_price, take_vol))
-                        buy_capacity -= take_vol
+            for ask_p, ask_v in sorted(order_depth.sell_orders.items()):
+                if ask_p < FV and buy_cap > 0:
+                    vol = min(buy_cap, abs(ask_v))
+                    orders.append(Order("ASH_COATED_OSMIUM", ask_p, vol))
+                    buy_cap -= vol
 
-        # Take any bid above FV (sell expensive)
         if order_depth.buy_orders:
-            for bid_price, bid_vol in sorted(order_depth.buy_orders.items(), reverse=True):
-                if bid_price > fv_int and sell_capacity < 0:
-                    take_vol = max(sell_capacity, -bid_vol)
-                    if take_vol < 0:
-                        orders.append(Order(PRODUCT, bid_price, take_vol))
-                        sell_capacity -= take_vol
-                # Inventory unwind: if long, also hit bids AT fair value to flatten
-                elif bid_price == fv_int and current_pos > 10 and sell_capacity < 0:
-                    take_vol = max(sell_capacity, -bid_vol, -current_pos)
-                    if take_vol < 0:
-                        orders.append(Order(PRODUCT, bid_price, take_vol))
-                        sell_capacity -= take_vol
+            for bid_p, bid_v in sorted(order_depth.buy_orders.items(), reverse=True):
+                if bid_p > FV and sell_cap < 0:
+                    vol = max(sell_cap, -bid_v)
+                    orders.append(Order("ASH_COATED_OSMIUM", bid_p, vol))
+                    sell_cap -= vol
 
-        # ==============================
-        # STEP 2: MARKET MAKING (wider spread, two-tier)
-        # ==============================
-        best_ask = min(order_depth.sell_orders.keys()) if order_depth.sell_orders else fv_int + TIGHT_SPREAD + 2
-        best_bid = max(order_depth.buy_orders.keys()) if order_depth.buy_orders else fv_int - TIGHT_SPREAD - 2
+        # ── Step 2: FV-anchored market making ─────────────────────────────────
+        my_bid = min(FV - 1, best_bid + 1)
+        my_ask = max(FV + 1, best_ask - 1)
 
-        # Tight quote: peg inside the spread but never cross FV
-        my_bid = min(fv_int - TIGHT_SPREAD, best_bid + 1)
-        my_ask = max(fv_int + TIGHT_SPREAD, best_ask - 1)
+        # Scale size with deviation from FV
+        # buy_scale:  1.0 when dev <= -DEV_FULL, 0.0 when dev >= 0
+        # sell_scale: 1.0 when dev >= +DEV_FULL, 0.0 when dev <= 0
+        buy_scale  = max(0.0, min(1.0, -dev / DEV_FULL))
+        sell_scale = max(0.0, min(1.0,  dev / DEV_FULL))
 
-        # Deep quote: further out for capturing wider moves
-        my_deep_bid = fv_int - DEEP_SPREAD
-        my_deep_ask = fv_int + DEEP_SPREAD
+        # When scale is high (far from FV): 80% tight, 20% deep
+        # When scale is low (near FV): 50% tight, 50% deep (standard symmetric MM)
+        tight_frac = 0.5 + 0.3 * max(buy_scale, sell_scale)  # 0.5 to 0.8
 
-        # --- BUY SIDE ---
-        if buy_capacity > 0:
-            tight_buy_vol = int(buy_capacity * TIGHT_FRAC)
-            deep_buy_vol = buy_capacity - tight_buy_vol
+        # Buy side
+        if buy_cap > 0 and buy_scale > 0:
+            total_buy = min(buy_cap, round(LIMIT * buy_scale))
+            tight_vol = max(1, round(total_buy * tight_frac))
+            deep_vol  = max(0, total_buy - tight_vol)
 
-            if tight_buy_vol > 0:
-                orders.append(Order(PRODUCT, my_bid, tight_buy_vol))
-            if deep_buy_vol > 0:
-                orders.append(Order(PRODUCT, my_deep_bid, deep_buy_vol))
+            orders.append(Order("ASH_COATED_OSMIUM", my_bid, tight_vol))
+            if deep_vol > 0:
+                orders.append(Order("ASH_COATED_OSMIUM", my_bid - 2, deep_vol))
 
-        # --- SELL SIDE ---
-        if sell_capacity < 0:
-            tight_sell_vol = int(sell_capacity * TIGHT_FRAC)
-            deep_sell_vol = sell_capacity - tight_sell_vol
+        # Sell side
+        if sell_cap < 0 and sell_scale > 0:
+            total_sell = max(sell_cap, -round(LIMIT * sell_scale))
+            tight_vol  = min(-1, -round(abs(total_sell) * tight_frac))
+            deep_vol   = max(total_sell - tight_vol, 0)
 
-            if tight_sell_vol < 0:
-                orders.append(Order(PRODUCT, my_ask, tight_sell_vol))
-            if deep_sell_vol < 0:
-                orders.append(Order(PRODUCT, my_deep_ask, deep_sell_vol))
+            orders.append(Order("ASH_COATED_OSMIUM", my_ask, tight_vol))
+            if deep_vol > 0:
+                orders.append(Order("ASH_COATED_OSMIUM", my_ask + 2, -deep_vol))
+
+        # Near FV (|dev| < 1): symmetric small MM to stay active
+        if abs(dev) < 1.0:
+            neutral_size = 15
+            if buy_cap > 0:
+                orders.append(Order("ASH_COATED_OSMIUM", my_bid, min(neutral_size, buy_cap)))
+            if sell_cap < 0:
+                orders.append(Order("ASH_COATED_OSMIUM", my_ask, max(-neutral_size, sell_cap)))
 
         return orders
