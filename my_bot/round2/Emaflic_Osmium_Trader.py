@@ -22,13 +22,9 @@ class Trader:
         FAIR_VALUE = 10000
         LIMIT = 80
 
-        # Skew prezzi quadratico: skew_max a |pos|=LIMIT è SKEW_FACTOR * LIMIT
-        # A |pos|=LIMIT/2 lo skew è 1/4 del max (curva convessa)
-        SKEW_FACTOR = 0.2
-
         # Arb: filtro adverse selection + quota capacity
-        ARB_EDGE_MIN = 8         # edge minimo in tick per entrare in arb
-        ARB_BUDGET_FRAC = 0.1     # quota capacity riservata all'arb
+        ARB_EDGE_MIN = 5          # edge minimo in tick per entrare in arb
+        ARB_BUDGET_FRAC = 0.3     # quota capacity riservata all'arb
 
         # Market making
         DEEP_OFFSET = 3           # distanza del deep level dal tight
@@ -45,11 +41,9 @@ class Trader:
         short_pressure = max(0.0, -inventory_ratio)
 
         # ──────────────────────────────────────────────────────────────────────
-        # STEP 1: ARBITRAGE con soglia di edge (Opzione A)
+        # STEP 1: ARBITRAGE con soglia di edge
         # Filtro: entra in arb solo se edge >= ARB_EDGE_MIN tick.
-        # Razionale: fill a FV-1 sono tossici (adverse selection); fill a FV-k
-        # con k grande sono outlier MR genuini che ritornano.
-        # Cap inventario quadratico: (1 - pressure^2) — tagli forte solo vicino al limit.
+        # Cap inventario quadratico: (1 - pressure^2).
         # ──────────────────────────────────────────────────────────────────────
         arb_buy_scale = max(0.0, 1.0 - long_pressure ** 2)
         arb_sell_scale = max(0.0, 1.0 - short_pressure ** 2)
@@ -66,7 +60,7 @@ class Trader:
                         arb_buy_cap -= take_vol
                         buy_capacity -= take_vol
                 else:
-                    break  # prezzi ordinati: i successivi sono peggiori
+                    break
 
         if order_depth.buy_orders:
             for bid_price, bid_vol in sorted(order_depth.buy_orders.items(), reverse=True):
@@ -80,10 +74,9 @@ class Trader:
                     break
 
         # ──────────────────────────────────────────────────────────────────────
-        # STEP 2: MARKET MAKING
-        # Skew quadratico su prezzi: protezione forte solo vicino al limit.
-        # Scaling quadratico su volumi: tieni size pieno più a lungo.
-        # Doppio segnale di rientro: prezzo + size.
+        # STEP 2: MARKET MAKING senza skew prezzi
+        # Prezzi: clamp standard FV±1, no skew.
+        # Gestione inventario: solo via volume scaling quadratico.
         # ──────────────────────────────────────────────────────────────────────
         best_ask = min(order_depth.sell_orders.keys()) if order_depth.sell_orders else FAIR_VALUE + 5
         best_bid = max(order_depth.buy_orders.keys()) if order_depth.buy_orders else FAIR_VALUE - 5
@@ -91,18 +84,7 @@ class Trader:
         my_bid = min(FAIR_VALUE - 1, best_bid + 1)
         my_ask = max(FAIR_VALUE + 1, best_ask - 1)
 
-        # Skew quadratico: skew = SKEW_FACTOR * LIMIT * ratio * |ratio|
-        # A pos=+80 (ratio=1)  → skew = 0.10 * 80 * 1 * 1   = 8   (uguale al lineare)
-        # A pos=+40 (ratio=0.5)→ skew = 0.10 * 80 * 0.5 *0.5= 2   (era 4 nel lineare)
-        # A pos=+20 (ratio=0.25)→ skew = 0.10 * 80 * 0.0625 = 0.5 (era 2)
-        skew = round(SKEW_FACTOR * LIMIT * inventory_ratio * abs(inventory_ratio))
-        my_bid = min(FAIR_VALUE - 1, my_bid - skew)
-        my_ask = max(FAIR_VALUE + 1, my_ask - skew)
-
-        # Scaling volume quadratico
-        # A pos=+40 → scale_buy = 1 - 0.25 = 0.75  (era 0.5 nel lineare)
-        # A pos=+60 → scale_buy = 1 - 0.5625 = 0.44 (era 0.25)
-        # A pos=+80 → scale_buy = 0                 (uguale)
+        # Scaling volume quadratico: tieni size pieno in zona safe, taglio ripido al limite
         mm_buy_scale = max(0.0, 1.0 - long_pressure ** 2)
         mm_sell_scale = max(0.0, 1.0 - short_pressure ** 2)
 
