@@ -2,19 +2,24 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import glob
+from pathlib import Path
+
+cartella_file = Path(__file__).parent
+root_progetto = cartella_file.parent
+data_dir = root_progetto / 'data' / 'round2'
 
 
 def plot_prices(day: int | str = "all"):
     """
-    Visualizza i prezzi dai CSV in data/prices_round_1_day_*.csv
+    Visualizza i prezzi dai CSV in data/round2/prices_round_2_day_*.csv
 
     Args:
-        day: giorno da visualizzare (-2, -1, 0) oppure "all" per tutti i giorni
+        day: giorno da visualizzare (-1, 0, 1) oppure "all" per tutti i giorni
     """
     if day == "all":
-        files = sorted(glob.glob("data/round1/prices_round_1_day_*.csv"))
+        files = sorted(glob.glob(str(data_dir / 'prices_*.csv')))
     else:
-        files = [f"data/round1/prices_round_1_day_{day}.csv"]
+        files = [str(data_dir / f'prices_round_2_day_{day}.csv')]
 
     if not files:
         print("Nessun file trovato.")
@@ -78,4 +83,4 @@ def plot_prices(day: int | str = "all"):
 
 
 if __name__ == "__main__":
-    plot_prices(day="-2")
+    plot_prices(day="all")
