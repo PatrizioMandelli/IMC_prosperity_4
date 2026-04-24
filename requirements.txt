@@ -1,9 +1,16 @@
 pandas
+numpy
+scipy
+statsmodels
 plotly
 streamlit
+scikit-learn
+lightgbm
 typer
 jsonpickle
 seaborn
 orjson
 IPython
 tqdm
+lightgbm
+scikit-learn

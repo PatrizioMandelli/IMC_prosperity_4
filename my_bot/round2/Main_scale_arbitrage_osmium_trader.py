@@ -1,30 +1,44 @@
+from typing import List
 from datamodel import OrderDepth, TradingState, Order
-from typing import List, Dict, Tuple
 import json
 
 
 class Trader:
 
+    def run(self, state: TradingState):
+        result = {}
+        conversions = 0
+
+        product = "ASH_COATED_OSMIUM"
+        if product in state.order_depths:
+            result[product] = self.osmium_strategy(state, state.order_depths[product])
+
+        return result, conversions, ""
+
     def osmium_strategy(self, state: TradingState, order_depth: OrderDepth) -> List[Order]:
         product = "ASH_COATED_OSMIUM"
         orders: List[Order] = []
 
+        # ── Parametri ─────────────────────────────────────────────────────────
         FAIR_VALUE = 10000
         LIMIT = 80
-        SKEW_FACTOR = 0.2
-        ARB_EDGE_MIN = 8
-        ARB_BUDGET_FRAC = 0.1
-        DEEP_OFFSET = 3
 
+        ARB_EDGE_MIN = 5
+        ARB_BUDGET_FRAC = 0.3
+
+        # ── Stato ─────────────────────────────────────────────────────────────
         current_pos = state.position.get(product, 0)
         inventory_ratio = current_pos / LIMIT
 
         buy_capacity = LIMIT - current_pos
         sell_capacity = -LIMIT - current_pos
 
-        long_pressure = max(0.0, inventory_ratio)
+        long_pressure = max(0.0,  inventory_ratio)
         short_pressure = max(0.0, -inventory_ratio)
 
+        # ──────────────────────────────────────────────────────────────────────
+        # STEP 1: ARBITRAGE
+        # ──────────────────────────────────────────────────────────────────────
         arb_buy_scale = max(0.0, 1.0 - long_pressure ** 2)
         arb_sell_scale = max(0.0, 1.0 - short_pressure ** 2)
 
@@ -53,123 +67,37 @@ class Trader:
                 else:
                     break
 
-        best_ask = min(order_depth.sell_orders.keys()) if order_depth.sell_orders else FAIR_VALUE + 5
-        best_bid = max(order_depth.buy_orders.keys()) if order_depth.buy_orders else FAIR_VALUE - 5
+        # ──────────────────────────────────────────────────────────────────────
+        # STEP 2: DYNAMIC MARKET MAKING
+        # ──────────────────────────────────────────────────────────────────────
+        best_ask = min(order_depth.sell_orders.keys()) if order_depth.sell_orders else FAIR_VALUE + 10
+        best_bid = max(order_depth.buy_orders.keys()) if order_depth.buy_orders else FAIR_VALUE - 10
 
         my_bid = min(FAIR_VALUE - 1, best_bid + 1)
         my_ask = max(FAIR_VALUE + 1, best_ask - 1)
 
-        skew = round(SKEW_FACTOR * LIMIT * inventory_ratio * abs(inventory_ratio))
-        my_bid = min(FAIR_VALUE - 1, my_bid - skew)
-        my_ask = max(FAIR_VALUE + 1, my_ask - skew)
+        if buy_capacity > 0:
+            tight_buy_vol = int(buy_capacity // 3)
+            deep_buy_vol = buy_capacity - tight_buy_vol
 
-        mm_buy_scale = max(0.0, 1.0 - long_pressure ** 2)
-        mm_sell_scale = max(0.0, 1.0 - short_pressure ** 2)
-
-        eff_buy_cap = int(buy_capacity * mm_buy_scale)
-        eff_sell_cap = int(sell_capacity * mm_sell_scale)
-
-        if eff_buy_cap > 0:
-            tight_buy_vol = eff_buy_cap // 2
-            deep_buy_vol = eff_buy_cap - tight_buy_vol
             if tight_buy_vol > 0:
                 orders.append(Order(product, my_bid, tight_buy_vol))
             if deep_buy_vol > 0:
-                orders.append(Order(product, my_bid - DEEP_OFFSET, deep_buy_vol))
+                orders.append(Order(product, my_bid - 5, deep_buy_vol))
 
-        if eff_sell_cap < 0:
-            tight_sell_vol = eff_sell_cap // 2
-            deep_sell_vol = eff_sell_cap - tight_sell_vol
+        if sell_capacity < 0:
+            tight_sell_vol = int(sell_capacity / 3)
+            deep_sell_vol = sell_capacity - tight_sell_vol
+
             if tight_sell_vol < 0:
                 orders.append(Order(product, my_ask, tight_sell_vol))
             if deep_sell_vol < 0:
-                orders.append(Order(product, my_ask + DEEP_OFFSET, deep_sell_vol))
+                orders.append(Order(product, my_ask + 5, deep_sell_vol))
 
         return orders
 
-    def compute_pepper_root_strategy_0(self, state: TradingState, order_depth: OrderDepth, prod_history: dict):
-        return [], prod_history
-
-    def compute_pepper_root_strategy_BASICS(self, state: TradingState, order_depth: OrderDepth, prod_history: dict):
-        orders: List[Order] = []
-        position = state.position.get("INTARIAN_PEPPER_ROOT", 0)
-
-        LIMIT = 80
-        buy_capacity = LIMIT - position
-        sell_capacity = -LIMIT - position
-
-        # Safely get Top of Book
-        best_bid = max(order_depth.buy_orders.keys()
-                       ) if order_depth.buy_orders else 0
-        best_ask = min(order_depth.sell_orders.keys()
-                       ) if order_depth.sell_orders else 20000
-
-        # --- 0. TELEMETRY: PRINT WHEN A SELL TRAP IS FILLED ---
-        if "INTARIAN_PEPPER_ROOT" in state.own_trades:
-            for trade in state.own_trades["INTARIAN_PEPPER_ROOT"]:
-                # If we were the seller on the previous tick, our marked-up trap was hit!
-                if trade.timestamp == state.timestamp - 100 and trade.seller == "SUBMISSION":
-                    print(
-                        f"[TS {state.timestamp}] 🎯 TRAP SPRUNG! Sold {trade.quantity} shares @ {trade.price}")
-
-        # --- 1. INSTANTANEOUS VWAP (MICROPRICE) ---
-        bid_vol = sum(order_depth.buy_orders.values())
-        # Prosperity ask volumes are negative
-        ask_vol = abs(sum(order_depth.sell_orders.values()))
-
-        if bid_vol > 0 and ask_vol > 0:
-            # Weight the bid price by the ask volume, and ask price by bid volume.
-            # This perfectly balances the "True Mid" based on where the heavy liquidity is sitting.
-            vwap_mid = (best_bid * ask_vol + best_ask *
-                        bid_vol) / (bid_vol + ask_vol)
-        else:
-            vwap_mid = (best_bid + best_ask) / 2.0
-
-        fair_value = vwap_mid
-
-        # --- 2. BUY AND HOLD (Maintain +80) ---
-        if buy_capacity > 0:
-            # Aggressive Take: If someone panics and sells below our VWAP, snatch it instantly
-            if len(order_depth.sell_orders) > 0:
-                for ask_price, a_vol in sorted(order_depth.sell_orders.items()):
-                    if ask_price <= fair_value and buy_capacity > 0:
-                        take_vol = min(buy_capacity, abs(a_vol))
-                        if take_vol > 0:
-                            orders.append(
-                                Order("INTARIAN_PEPPER_ROOT", ask_price, take_vol))
-                            buy_capacity -= take_vol
-
-            # Passive Accumulation: Place bids slightly below VWAP to soak up the rest cheaply
-            if buy_capacity > 0:
-                my_bid = min(int(round(fair_value - 1)), best_bid + 1)
-                orders.append(
-                    Order("INTARIAN_PEPPER_ROOT", my_bid, buy_capacity))
-
-        # --- 3. LAYERED SELL TRAPS (The Markup) ---
-        if sell_capacity < 0:
-            # We quote different asks with different sizes depending on the markup.
-            # We allocate more volume to the "likely" spikes, and save a little for the massive whales.
-
-            t1_vol = int(sell_capacity * 0.4)  # 40% of inventory at +12 markup
-            t2_vol = int(sell_capacity * 0.4)  # 40% of inventory at +18 markup
-            t3_vol = sell_capacity - t1_vol - t2_vol  # Remaining 20% at +24 markup
-
-            if t1_vol < 0:
-                orders.append(Order("INTARIAN_PEPPER_ROOT",
-                              int(round(fair_value + 12)), t1_vol))
-
-            if t2_vol < 0:
-                orders.append(Order("INTARIAN_PEPPER_ROOT",
-                              int(round(fair_value + 18)), t2_vol))
-
-            if t3_vol < 0:
-                orders.append(Order("INTARIAN_PEPPER_ROOT",
-                              int(round(fair_value + 24)), t3_vol))
-
-        # We don't even need to use prod_history anymore. The bot is perfectly stateless!
-        return orders, prod_history
-
-    def compute_pepper_root_strategy_CORE_EXPLORE(self, state: TradingState, order_depth: OrderDepth, prod_history: dict):
+    def compute_pepper_root_strategy_CORE_EXPLORE(self, state: TradingState, order_depth: OrderDepth,
+                                                  prod_history: dict):
         orders: List[Order] = []
         position = state.position.get("INTARIAN_PEPPER_ROOT", 0)
 
@@ -224,7 +152,7 @@ class Trader:
         # --- THE STARTUP SWITCH ---
         # If we are within the first 5,000 timestamps of a new day and we are missing shares,
         # we enter "Panic Buy" mode to instantly lock in our 80 inventory for the macro trend.
-        is_startup = rel_time < 5000 and buy_capacity > 0
+        is_startup = rel_time < 10000 and buy_capacity > 0
 
         # =========================================================================
         # 🛡️ SECURITY LAYER 1: THE PERSISTENT CIRCUIT BREAKER
@@ -249,7 +177,7 @@ class Trader:
                 last_ts, last_price = snapshots[-1]
                 if last_ts > first_ts:
                     new_slope = (last_price - first_price) / \
-                        (last_ts - first_ts)
+                                (last_ts - first_ts)
 
             # 2. OVERRIDE the constants in memory "from now on"
             prod_history["ACTIVE_SLOPE"] = new_slope
@@ -268,8 +196,7 @@ class Trader:
                     Order("INTARIAN_PEPPER_ROOT", best_bid, -position))
 
             return orders, prod_history  # Evacuate and skip all other logic
-
-        is_startup = rel_time < 5000 and buy_capacity > 0
+        is_startup = rel_time < 500 and buy_capacity > 0
 
         # --- 2. AGGRESSIVE TAKER ACTIONS ---
 
@@ -291,7 +218,7 @@ class Trader:
 
                     # THE SWITCH: If startup, we accept ANY ask up to FV + 15 to force the fill.
                     # Otherwise, we use your highly tuned normal tolerance of FV + 6.
-                    max_acceptable_ask = fair_value + 8 if is_startup else fair_value + 6
+                    max_acceptable_ask = fair_value + 20 if is_startup else fair_value + 6
 
                     if ask_price <= max_acceptable_ask and buy_capacity > 0:
                         take_vol = min(buy_capacity, abs(ask_vol))
@@ -319,10 +246,10 @@ class Trader:
 
             if t1_vol < 0:
                 orders.append(Order("INTARIAN_PEPPER_ROOT",
-                              my_ask1, t1_vol))
+                                    my_ask1, t1_vol))
             if t2_vol < 0:
                 orders.append(Order("INTARIAN_PEPPER_ROOT",
-                              my_ask2, t2_vol))
+                                    my_ask2, t2_vol))
 
         # QUOTE BIDS (The Vacuum - SWITCH APPLIED)
         if buy_capacity > 0:
