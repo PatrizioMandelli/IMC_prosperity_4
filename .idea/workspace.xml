@@ -5,6 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6063ce61-452b-47e2-aede-7fc6a117f04d" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/my_bot/round3/full_trader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my_bot/round3/Trialer.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my_bot/round3/asymmetric.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my_bot/round3/hydro.py" beforeDir="false" afterPath="$PROJECT_DIR$/my_bot/round3/hydro.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my_bot/round3/sniper.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/prosperity4bt/data.py" beforeDir="false" afterPath="$PROJECT_DIR$/prosperity4bt/data.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -54,8 +60,8 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -81,6 +87,7 @@
       <option name="presentableId" value="Default" />
       <updated>1777026821764</updated>
       <workItem from="1777026823364" duration="19774000" />
+      <workItem from="1777056896630" duration="19994000" />
     </task>
     <servers />
   </component>
