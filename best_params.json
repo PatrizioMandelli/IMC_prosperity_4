@@ -1,0 +1,19 @@
+{
+    "initial_var": 2.0,
+    "var_alpha": 0.01,
+    "vol_multiplier": 1.5,
+    "hedge_ratio": 0.0,
+    "v_alpha_fast": 0.55,
+    "v_alpha_slow": 0.01,
+    "v_mix": 0.7,
+    "v_skew_div": 25.0,
+    "v_taker_thr": 2.0,
+    "v_max_taker": 50,
+    "v_maker_spread": 1.0,
+    "v_maker_qty": 50,
+    "opt_skew_div": 100.0,
+    "opt_taker_thr": 1.0,
+    "opt_max_taker": 50,
+    "opt_maker_spread": 1.0,
+    "opt_maker_qty": 100
+}
