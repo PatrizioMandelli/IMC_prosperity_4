@@ -57,10 +57,10 @@ class Trader:
         fair_value = 0.7 * fast_fair + 0.3 * slow_fair
 
         # --- 2. SKEW LINEARE PIÙ AGGRESSIVO (Divisore da 75 a 50) ---
-        if abs(current_pos) > 130:
-            sm = ((abs(current_pos) - 130) / 40.0) ** 3 / 2
-            sg = 1 if current_pos > 0 else -1
-            inv_skew = sg * sm * 10 + (current_pos / 50.0)  # Più reattivo
+        if abs(current_pos) > 150:
+            sm = ((abs(current_pos) - 150) / 40.0) ** 1.5
+            sgn = 1 if current_pos > 0 else -1
+            inv_skew = sgn * sm * 10 + (current_pos / 50.0)  # Più reattivo
         else:
             inv_skew = current_pos / 50.0
 
@@ -68,7 +68,7 @@ class Trader:
 
         buy_cap = LIMIT - current_pos
         sell_cap = -LIMIT - current_pos
-        MAX_TAKER = 50
+        MAX_TAKER = 80
 
         if best_ask < adjusted_fair - 2.0 and buy_cap > 0:
             qty = min(buy_cap, abs(depth.sell_orders[best_ask]), MAX_TAKER)
@@ -88,12 +88,12 @@ class Trader:
         bid_size = max(5, min(195, int(BASE * bid_mult)))
         ask_size = max(5, min(195, int(BASE * ask_mult)))
 
-        bid_offset = 1
-        ask_offset = 1
-        if pos_ratio > 0.4: ask_offset = 2
-        if pos_ratio > 0.7: ask_offset = 3
-        if pos_ratio < -0.4: bid_offset = 2
-        if pos_ratio < -0.7: bid_offset = 3
+        slope = 2
+
+        # Se pos_ratio è positivo (Long), ask_offset aumenta per vendere prima.
+        # Se pos_ratio è negativo (Short), bid_offset aumenta per comprare prima.
+        ask_offset = 1 + int(max(0, pos_ratio * slope))
+        bid_offset = 1 + int(max(0, -pos_ratio * slope))
 
         my_bid = best_bid + bid_offset
         my_ask = best_ask - ask_offset
@@ -104,16 +104,16 @@ class Trader:
 
         # --- 3. LOGICA DI USCITA SIMMETRICA (EMERGENCY EXIT) ---
         # Di base non vogliamo comprare sopra fair o vendere sotto fair.
-        # Ma se la posizione è estrema (>150), permettiamo uno sforamento di 2 tick per chiudere.
+        # Ma se la posizione è estrema (>150), permettiamo uno sforamento di 1.5 tick per chiudere.
         bid_clamp_offset = -0.5
         ask_clamp_offset = 0.5
 
         if current_pos > 150:
-            # Troppo Long: permetti di vendere fino a fair_value - 2.0
-            ask_clamp_offset = -2.0
+            # Troppo Long: permetti di vendere fino a fair_value - 1.5
+            ask_clamp_offset = -1.5
         elif current_pos < -150:
-            # Troppo Short: permetti di comprare fino a fair_value + 2.0
-            bid_clamp_offset = 2.0
+            # Troppo Short: permetti di comprare fino a fair_value + 1.5
+            bid_clamp_offset = 1.5
 
         my_bid = min(my_bid, int(math.floor(fair_value + bid_clamp_offset)))
         my_ask = max(my_ask, int(math.ceil(fair_value + ask_clamp_offset)))
