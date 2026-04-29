@@ -1,113 +1,116 @@
-import math
-from datamodel import OrderDepth, UserId, TradingState, Order
-from typing import List, Dict
+from datamodel import Order, OrderDepth, TradingState
+from typing import Dict, List
+from collections import deque
+import numpy as np
 
 
 class Trader:
+    LIMIT = 10
+
+    HARD_SHORT = {"MICROCHIP_OVAL"}
+
+    # CONFIGURAZIONE (direction, trend_w, s_start, s_end, threshold, short_w)
+    # Aggiunto short_w=40 a SQUARE per proteggerlo dalle inversioni del Day 4
+    CONFIGS = {
+        "MICROCHIP_SQUARE": (+1, 80, 15, 5, 4.5, 40),
+        "MICROCHIP_CIRCLE": (+1, 100, 10, 10, 8.0, None),
+        "MICROCHIP_TRIANGLE": (-1, 100, 10, 10, 5.0, None),
+        "MICROCHIP_RECTANGLE": (-1, 100, 10, 10, 5.0, 50),
+    }
+
     def __init__(self):
-        self.limit = 10
+        all_products = self.HARD_SHORT | set(self.CONFIGS.keys())
+        # Calcoliamo la finestra massima necessaria per il deque
+        max_w = max(cfg[1] for cfg in self.CONFIGS.values())
+        self.prices: Dict[str, deque] = {
+            p: deque(maxlen=max_w) for p in all_products
+        }
 
-        # StatArb Parameters
-        self.beta_sr = 2
-        self.mean_sr = 32350
-        self.std_sr = 860
-
-        self.beta_to = 0.5
-        self.mean_to = 5860
-        self.std_to = 410
-
-    def get_mid_price(self, order_depth: OrderDepth):
-        if not order_depth or not order_depth.sell_orders or not order_depth.buy_orders:
+    def mid(self, depth: OrderDepth):
+        if not depth.buy_orders or not depth.sell_orders:
             return None
-        best_ask = min(order_depth.sell_orders.keys())
-        best_bid = max(order_depth.buy_orders.keys())
-        return (best_ask+ best_bid) / 2.0
+        return (max(depth.buy_orders) + min(depth.sell_orders)) / 2
 
-    def run(self, state: TradingState):
-        result = {}
-        conversions = 0
-        traderData = ""
+    def _passive_order(self, symbol: str, depth: OrderDepth,
+                       pos: int, target: int) -> List[Order]:
+        """
+        Esegue ordini passivi per gestire lo spread elevato (8-12 punti).
+        SQUARE ha lo spread medio più alto (11.72)[cite: 1].
+        """
+        best_bid = max(depth.buy_orders)
+        best_ask = min(depth.sell_orders)
+        orders: List[Order] = []
+        diff = target - pos
 
-        # 1. Update Signals
-        mid_sq = self.get_mid_price(state.order_depths.get("MICROCHIP_SQUARE"))
-        mid_rect = self.get_mid_price(state.order_depths.get("MICROCHIP_RECTANGLE"))
-        z_sr = 0
-        if mid_sq is not None and mid_rect is not None:
-            spread_sr = mid_sq + self.beta_sr * mid_rect
-            z_sr = (spread_sr - self.mean_sr) / self.std_sr
+        if diff > 0:
+            # Voglio comprare — offro al bid+1 (passivo)
+            orders.append(Order(symbol, best_bid + 1, diff))
+        elif diff < 0:
+            # Voglio vendere — offro all'ask-1 (passivo)
+            orders.append(Order(symbol, best_ask - 1, diff))
+        return orders
 
-        mid_tri = self.get_mid_price(state.order_depths.get("MICROCHIP_TRIANGLE"))
-        mid_oval = self.get_mid_price(state.order_depths.get("MICROCHIP_OVAL"))
-        z_to = 0
-        if mid_tri is not None and mid_oval is not None:
-            spread_to = mid_tri - self.beta_to * mid_oval
-            z_to = (spread_to - self.mean_to) / self.std_to
+    def run(self, state: TradingState) -> tuple[Dict[str, List[Order]], int, str]:
+        result: Dict[str, List[Order]] = {}
 
-        # 2. Trade Microchips
-        products = ["MICROCHIP_SQUARE", "MICROCHIP_RECTANGLE", "MICROCHIP_TRIANGLE", "MICROCHIP_OVAL",
-                    "MICROCHIP_CIRCLE"]
+        # 1. Aggiorna prezzi[cite: 1]
+        for p in self.prices:
+            depth = state.order_depths.get(p)
+            if depth:
+                m = self.mid(depth)
+                if m:
+                    self.prices[p].append(m)
 
-        for product in products:
-            if product not in state.order_depths:
+        # 2. OVAL: Short fisso sempre (l'asset più affidabile con slope negativa costante)[cite: 1]
+        for p in self.HARD_SHORT:
+            depth = state.order_depths.get(p)
+            if not depth or not depth.buy_orders or not depth.sell_orders:
+                continue
+            pos = state.position.get(p, 0)
+            orders = self._passive_order(p, depth, pos, -self.LIMIT)
+            if orders:
+                result[p] = orders
+
+        # 3. Altri Asset: Logica Trend con protezione short-term[cite: 1]
+        for p, (direction, trend_w, s_start, s_end, threshold, short_w) in self.CONFIGS.items():
+            depth = state.order_depths.get(p)
+            if not depth or not depth.buy_orders or not depth.sell_orders:
                 continue
 
-            order_depth = state.order_depths[product]
-            orders: List[Order] = []
-            curr_pos = state.position.get(product, 0)
+            pos = state.position.get(p, 0)
+            hist = list(self.prices[p])
 
-            best_ask = min(order_depth.sell_orders.keys())
-            best_bid = max(order_depth.buy_orders.keys())
-            mid = (best_ask + best_bid) / 2.0
+            if len(hist) < trend_w:
+                continue
 
-            # Fair Value calculation basato sui segnali StatArb
-            fair_val = mid
-            if product == "MICROCHIP_SQUARE":
-                fair_val = mid - (z_sr * 12)
-            elif product == "MICROCHIP_RECTANGLE":
-                fair_val = mid - (z_sr * 6)
-            elif product == "MICROCHIP_TRIANGLE":
-                fair_val = mid - (z_to * 6)
-            elif product == "MICROCHIP_OVAL":
-                fair_val = mid + (z_to * 6)
+            # Calcolo Trend Lungo (Media Mobile su due segmenti)[cite: 1]
+            start_val = np.mean(hist[:s_start])
+            end_val = np.mean(hist[-s_end:])
+            long_trend = end_val - start_val
 
-            # --- A. TAKER LOGIC (Aggressiva) ---
-            # Se il fair value è superiore al prezzo di vendita attuale, compriamo subito
-            if fair_val > best_ask:
-                buy_qty = min(order_depth.sell_orders[best_ask], self.limit - curr_pos)
-                if buy_qty > 0:
-                    orders.append(Order(product, best_ask, buy_qty))
-                    curr_pos += buy_qty
+            long_confirms = (direction > 0 and long_trend > threshold) or \
+                            (direction < 0 and long_trend < -threshold)
 
-            # Se il fair value è inferiore al prezzo di acquisto attuale, vendiamo subito
-            if fair_val < best_bid:
-                sell_qty = max(-order_depth.buy_orders[best_bid], -self.limit - curr_pos)
-                if sell_qty < 0:
-                    orders.append(Order(product, best_bid, sell_qty))
-                    curr_pos += sell_qty
+            target = 0
+            if long_confirms:
+                # Se è presente un filtro short_w, verifichiamo il trend immediato per uscire prima[cite: 1]
+                if short_w is not None:
+                    short_hist = hist[-short_w:]
+                    short_start = np.mean(short_hist[:5])
+                    short_end = np.mean(short_hist[-5:])
+                    short_trend = short_end - short_start
 
-            # --- B. MAKER LOGIC (Price Improvement) ---
-            # Cerchiamo di essere i primi della coda migliorando il best bid/ask di 1 tick
+                    # Se il trend breve è coerente con la nostra direzione, manteniamo il target[cite: 1]
+                    short_confirms = (direction > 0 and short_trend > 0) or \
+                                     (direction < 0 and short_trend < 0)
+                    target = self.LIMIT * direction if short_confirms else 0
+                else:
+                    target = self.LIMIT * direction
 
-            if curr_pos < self.limit:
-                # Proviamo a metterci sopra il miglior compratore per essere eseguiti per primi
-                bid_pr = best_bid + 1
-                # Non superiamo mai il nostro fair value (per non comprare in perdita)
-                # Sottraiamo un piccolo margine (1) per sicurezza
-                bid_pr = min(bid_pr, int(math.floor(fair_val - 1)))
+            # Esegui l'ordine solo se dobbiamo cambiare posizione[cite: 1]
+            if pos != target:
+                orders = self._passive_order(p, depth, pos, target)
+                if orders:
+                    result[p] = orders
 
-                # Se il prezzo calcolato è valido e non incrocia il book in modo errato
-                if bid_pr < best_ask:
-                    orders.append(Order(product, bid_pr, self.limit - curr_pos))
-
-            if curr_pos > -self.limit:
-                # Proviamo a metterci sotto il miglior venditore
-                ask_pr = best_ask - 1
-                # Non scendiamo mai sotto il fair value
-                ask_pr = max(ask_pr, int(math.ceil(fair_val + 1)))
-
-                if ask_pr > best_bid:
-                    orders.append(Order(product, ask_pr, -self.limit - curr_pos))
-
-            result[product] = orders
-
-        return result, conversions, traderData
+        return result, 0, ""

@@ -16,11 +16,11 @@ class Trader:
         
         # Best Oracles (target: (oracle, alpha, beta, std))
         self.configs = {
-            'GALAXY_SOUNDS_BLACK_HOLES': ('PEBBLES_S', 20559.43, -1.0179, 446.23),
-            'GALAXY_SOUNDS_DARK_MATTER': ('UV_VISOR_YELLOW', 6144.54, 0.3725, 211.76),
-            'GALAXY_SOUNDS_PLANETARY_RINGS': ('GALAXY_SOUNDS_DARK_MATTER', 8025.67, 0.2608, 297.89),
-            'GALAXY_SOUNDS_SOLAR_WINDS': ('PANEL_1X4', 15490.14, -0.5376, 302.85),
-            'GALAXY_SOUNDS_SOLAR_FLAMES': ('GALAXY_SOUNDS_SOLAR_WINDS', 14003.29, -0.2789, 424.10)
+            'GALAXY_SOUNDS_BLACK_HOLES': ('PEBBLES_S', 20500, -1, 450),
+            'GALAXY_SOUNDS_DARK_MATTER': ('UV_VISOR_YELLOW', 6150, 0.4, 200),
+            'GALAXY_SOUNDS_PLANETARY_RINGS': ('GALAXY_SOUNDS_DARK_MATTER', 8000, 0.3, 300),
+            'GALAXY_SOUNDS_SOLAR_WINDS': ('PANEL_1X4', 1550, -0.5, 300),
+            'GALAXY_SOUNDS_SOLAR_FLAMES': ('GALAXY_SOUNDS_SOLAR_WINDS', 14000, -0.3, 420)
         }
         
         self.pos_limit = 10
