@@ -1,14 +1,22 @@
-import sys
-from pathlib import Path
-
 import numpy as np
 import pandas as pd
 
-# Pull features() from the existing order_book_analyzer without triggering its CLI
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from analysis_tools.order_book_analyzer import features as _oba_features
-
 ROLL_W = 30
+
+
+def _oba_features(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    median = df["mid_price"].median()
+    df.loc[df["mid_price"] < median * 0.5, "mid_price"] = np.nan
+    df["mid_price"] = df["mid_price"].interpolate()
+
+    df["bid_depth"] = df[["bid_volume_1", "bid_volume_2", "bid_volume_3"]].sum(axis=1, min_count=1)
+    df["ask_depth"] = df[["ask_volume_1", "ask_volume_2", "ask_volume_3"]].sum(axis=1, min_count=1)
+    df["one_sided"] = df["bid_depth"].eq(0) | df["ask_depth"].eq(0)
+    df["spread"] = df["ask_price_1"] - df["bid_price_1"]
+    df["spread_roll"] = df["spread"].rolling(ROLL_W, min_periods=1).mean()
+    df["pnl_delta"] = df["profit_and_loss"].diff().fillna(0) if "profit_and_loss" in df.columns else 0
+    return df
 
 
 class LOBNormalizer:
