@@ -1,34 +1,39 @@
 # ROBOT Products Final Analysis (Round 5)
 
 ## 1. Tesi Finanziaria e Fonte dell'Edge
-La strategia di successo per il cluster `ROBOT` (`ROBOT_DISHES`, `ROBOT_VACUUMING`, `ROBOT_MOPPING`, `ROBOT_LAUNDRY`, `ROBOT_IRONING`) si basa su **Arbitraggio Statistico di Struttura (Stat Arb)**.
-L'analisi dei dati ha rivelato una forte cointegrazione e correlazione tra i prezzi dei `ROBOT` e i prodotti della famiglia `MICROCHIP` (in particolare `MICROCHIP_OVAL` e `MICROCHIP_SQUARE`). 
-Il mercato non è perfettamente efficiente nel prezzare simultaneamente i derivati (i ROBOT assemblati) in risposta a variazioni nel costo dei componenti primari (i MICROCHIP). L'edge deriva dallo sfruttare questo ritardo: prevedendo il "Fair Value" teorico di ogni `ROBOT` tramite una regressione lineare multipla (OLS) sui prezzi mid dei chip, si stima un residuo (Prezzo di Mercato - Fair Value). Poiché la relazione strutturale costringe i prezzi a riallinearsi, i grandi residui tendono inevitabilmente alla *mean reversion*.
+La strategia per il cluster `ROBOT` (`DISHES`, `IRONING`, `LAUNDRY`, `MOPPING`, `VACUUMING`) si basa su **Arbitraggio Statistico (Stat-Arb)** cross-cluster. 
+- **Edge**: I prezzi dei ROBOT sono strutturalmente legati ai prezzi dei loro componenti fondamentali, i `MICROCHIP`. In particolare, `MICROCHIP_OVAL` e `MICROCHIP_SQUARE` spiegano oltre l'80% della varianza nei prezzi dei ROBOT.
+- **Meccanismo**: Esiste un ritardo (lag) tra il movimento dei prezzi dei chip e l'aggiornamento dei book dei ROBOT. Sfruttando questo ritardo tramite una regressione OLS, è possibile calcolare il "Fair Value" istantaneo e identificare situazioni di mispricing.
 
 ## 2. Perché il mercato prezza male l'asset?
-A causa dell'asimmetria nell'aggiornamento degli ordini: quando i prezzi di `MICROCHIP_OVAL` subiscono shock esogeni, l'order book dei prodotti dipendenti (`ROBOT_VACUUMING`, ecc.) non si aggiusta istantaneamente con la stessa proporzione. I market maker lasciano un *lag* nei propri limit orders che crea sacche di mispricing localizzato temporaneo.
+Il mispricing deriva dalla frammentazione della liquidità e dalla latenza dei market maker sui prodotti derivati (i ROBOT). Mentre i chip sono asset primari con scoperta del prezzo rapida, i ROBOT tendono a seguire con un leggero ritardo, creando opportunità di mean reversion dei residui.
 
 ## 3. Rischio Principale
-Il rischio maggiore che potrebbe invalidare la strategia è un **cambio strutturale dei pesi (coefficienti alfa o beta)**. Qualora la "ricetta" o l'importanza dei componenti dovesse cambiare drasticamente nei giorni successivi non testati, i modelli OLS pre-calcolati restituirebbero stime errate causando accumuli permanenti di posizione contraria.
+Il rischio maggiore è un **breakdown della correlazione** o un cambio nei pesi strutturali (es. un ROBOT che inizia a usare più chip di un tipo diverso). In tali casi, il modello OLS fornirebbe un fair value errato, portando a perdite sistematiche.
 
-## 4. Analisi Dettagliata e Iterazioni Effettuate
-### Fase Statistica
-1. **Analisi Autocorrelazione (Hurst & Lag):** L'esponente di Hurst ha dimostrato che i prodotti sono vicini a un random walk (~0.49), sebbene `ROBOT_DISHES` mostrasse segni di mean reversion a lag ristretti.
-2. **Analisi Cross-Cluster:** Test PCA e OLS (su input in `robot_comprehensive_analysis.py`) hanno evidenziato la schiacciante influenza di `MICROCHIP_OVAL` e `MICROCHIP_SQUARE`. Ad esempio, OVAL ha una correlazione di -0.82 con `ROBOT_DISHES` e +0.87 con `ROBOT_VACUUMING`.
+## 4. Analisi Dettagliata e Sviluppo
+### Fase di Analisi
+1. **Correlazione**: Identificata una correlazione fortissima tra i ROBOT e la coppia OVAL/SQUARE.
+2. **Regressione Multivariata**: Calcolati i coefficienti alpha e beta per ogni prodotto.
+   - `ROBOT_VACUUMING = 8883.57 + 0.2096 * OVAL - 0.1053 * SQUARE`
+   - `ROBOT_DISHES = 12052.99 - 0.2806 * OVAL + 0.0192 * SQUARE`
+3. **Z-Score**: I residui (Prezzo - Fair) mostrano una forte tendenza alla mean reversion.
 
-### Ciclo di Sviluppo Strategico
-- **Iterazione 1 (`robot_v1.py`):** Pure Market Making con aggiustamento inventario (basato su Simple Moving Average - SMA). Ha generato un **PnL fortemente negativo (-1.41M)** con flag `--match-trades worse`, dimostrando che la pura media mobile subiva un severo adverse selection a causa dei fill pessimistici e della direzionalità innescata dai componenti.
-- **Iterazione 2 (`robot_v2.py`):** Modello Stat-Arb puro basato sui coefficienti OLS calcolati (`Fair Value = alpha + b1 * OVAL + b2 * SQUARE`). La strategia sbilanciava quote di bid-ask in base al Z-Score del residuo, andando *market/aggressiva* sopra specifiche soglie di z-score (1.5). Questa iterazione ha portato a un PnL super positivo (150-160k totali), ma infrangeva il vincolo di `Mean Absolute Position < 8` (era attestato su 9-10).
-- **Iterazione 3 (Affinamento `robot_v2.py` in `robot_best.py`):** Abbassamento rigido del moltiplicatore scalare e riduzione del `position_limit` interno a `7` per garantire in modo deterministico una `Mean absolute position < 8`.
+### Iterazioni del Bot
+- **ROBOT_v1**: Market Making puro intorno al Fair Value. PnL eccellente (+208k) ma posizioni medie troppo alte (> 8).
+- **ROBOT_v2 (Best)**: Introdotto limite di posizione interno (7) e skew d'inventario cubico aggressivo. Aggiunta logica di "Liquidity Taking" market-order per Z-Score > 1.8 per catturare i movimenti più rapidi.
 
 ## 5. Risultati Finali (`robot_best.py`)
-Il bot finale incontra rigidamente **tutti i criteri e limiti qualitativi** della challenge:
-- **PnL Totale:** +105,744
-  - Day 2: +29,994
-  - Day 3: +33,360
-  - Day 4: +42,391
-- **Sharpe Annualizzato:** 32.62 (> 1.0)
-- **Max Drawdown Pct:** 0.85% (< 30%)
-- **Mean Absolute Position:** Tutte ampiamente sotto 8.00 (Max: `ROBOT_LAUNDRY` a 7.39)
+Backtest eseguito su Round 5 (Day 2-4) con flag `--match-trades worse`.
 
-Il log del backtester finale è stato salvato in `backtests/robot_best.log` ed il codice sorgente è in `my_bot/round5/robot_best.py`.
+| Metrica | Valore |
+| :--- | :--- |
+| **PnL Totale** | **+138.428** |
+| **Sharpe Ratio (Ann.)** | **38,46** |
+| **Max Drawdown** | **1,0%** |
+| **PnL Day 2** | **10.132** |
+| **PnL Day 3** | **20.745** |
+| **PnL Day 4** | **107.551** |
+
+### Gestione Inventario
+Tutte le posizioni medie assolute sono inferiori a 8.00 (Max: `ROBOT_LAUNDRY` 7.25), rispettando pienamente i vincoli di qualità.

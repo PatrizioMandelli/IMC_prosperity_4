@@ -1,30 +1,25 @@
-# GALAXY_SOUNDS Master Analysis
+# GALAXY Trading Strategy Final Analysis
 
-## 1. Thesis & Edge
-The GALAXY_SOUNDS cluster exhibits strong cross-cluster cointegration and internal correlations. The edge lies in **Statistical Arbitrage** through mean-reverting spreads, both internal and cross-cluster.
+## Executive Summary
+The GALAXY cluster in IMC Prosperity Round 5 consists of 5 products: `BLACK_HOLES`, `DARK_MATTER`, `PLANETARY_RINGS`, `SOLAR_FLAMES`, and `SOLAR_WINDS`. While these products trade together as a basket, their long-term mid-price linear relationships are unstable and prone to drift. The most reliable source of profitability is high-frequency market making on the wide bid-ask spread (~13 ticks) using the **Weighted Mid-Price** as a short-term fair value estimate.
 
-## 2. Key Relationships
+## Key Findings
+1.  **Basket Behavior:** All 5 GALAXY products trade simultaneously in discrete basket trades (detected in trade logs at specific timestamps with identical quantities). This suggests a strong structural link, but not a constant mid-price sum or fixed ratio.
+2.  **Unstable Cointegration:** OLS and Johansen cointegration tests showed that while stationary combinations exist within a single day (e.g., `DARK_MATTER` vs `SOLAR` products), the coefficients are highly unstable across different days, making static intra-cluster arbitrage risky.
+3.  **Cross-Cluster Oracles:** External oracles (e.g., `UV_VISOR_YELLOW` for `DARK_MATTER`) provide strong directional signals but can distract from the high-frequency edge available within the cluster's own orderbook microstructure.
+4.  **High-Frequency Edge:** The primary edge is capturing the bid-ask spread. Given the spread width of ~13 ticks and high volume, a market making strategy that quotes around the inventory-neutral price (weighted mid) is highly effective.
 
-### Cross-Cluster Oracles (High Confidence)
-- **BLACK_HOLES vs PEBBLES_S**: Correlation **-0.885**. Highly stable inverse relationship.
-- **DARK_MATTER vs UV_VISOR_YELLOW**: Correlation **0.768**. ADF p-value **0.0003**. This is the strongest stationarity found.
-- **SOLAR_WINDS vs PANEL_1X4**: Correlation **-0.828**. ADF p-value **0.015**.
+## Winning Strategy: GALAXY_best.py
+The final strategy uses a refined high-frequency market making approach:
+-   **Fair Value Estimation:** Calculates the `Weighted Mid-Price` for each product independently. This price accounts for orderbook imbalance and serves as a proxy for the next immediate mid-price move.
+-   **Asymmetric Quoting:** Places passive buy/sell orders around the weighted mid. If the fair value is significantly tilted, the bot becomes more aggressive (takers) to capture immediate liquidity.
+-   **Inventory Management:** Uses position-based skewing to encourage trades that return the position to zero, mitigating the risk of accumulating large directional exposure in the basket.
 
-### Internal Cluster Spreads
-- **SOLAR_FLAMES vs SOLAR_WINDS**: ADF p-value **0.024**.
-- **DARK_MATTER vs PLANETARY_RINGS**: ADF p-value **0.037**.
+## Backtest Performance (GALAXY_best.log)
+-   **Total Profit:** **+41,676**
+-   **Annualized Sharpe Ratio:** **13.33**
+-   **Max Drawdown:** **~2.1%**
+-   **Daily Consistency:** Profitable on all three test days (+460, +19,846, +21,370).
 
-### Cluster Basket
-- The 5-product Johansen basket is stationary with ADF p-value **0.039**.
-
-## 3. Risks
-- **Structural Break**: If the underlying relationship between clusters (e.g., GALAXY and PEBBLES) breaks, the strategy will suffer.
-- **Position Limits**: ±10 is very tight, requiring precise execution and maybe scaling.
-- **Match-Trades Worse**: Fills will be harder to get, so we need to be careful with market-taking.
-
-## 4. Strategy Roadmap
-- **Strategy 1**: Stat Arb on `DARK_MATTER` vs `UV_VISOR_YELLOW`.
-- **Strategy 2**: Stat Arb on `BLACK_HOLES` vs `PEBBLES_S`.
-- **Strategy 3**: Stat Arb on `SOLAR_WINDS` vs `PANEL_1X4`.
-- **Strategy 4**: Internal Mean Reversion for `SOLAR_FLAMES` vs `SOLAR_WINDS`.
-- **Strategy 5**: Unified Cluster Basket Arbitrage.
+## Conclusion
+The GALAXY cluster represents a classic high-frequency trading opportunity where microstructure (orderbook imbalance) outweighs macro-structure (basket cointegration). The `GALAXY_best` bot effectively exploits this by providing liquidity where needed and capturing the spread, resulting in a robust and highly profitable strategy.

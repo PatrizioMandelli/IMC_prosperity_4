@@ -5,20 +5,9 @@ from typing import Optional
 from prosperity4bt.datamodel import Symbol, Trade
 from prosperity4bt.file_reader import FileReader
 
-DEFAULT_POSITION_LIMIT = 20
+DEFAULT_POSITION_LIMIT = 10
 
 LIMITS: dict[str, int] = {
-    "EMERALDS": 80,
-    "TOMATOES": 80,
-    "AMETHYSTS": 20,
-    "STARFRUIT": 20,
-    "ORCHIDS": 100,
-    "CHOCOLATE": 250,
-    "STRAWBERRIES": 350,
-    "ROSES": 60,
-    "GIFT_BASKET": 60,
-    "COCONUT": 200,
-    "COCONUT_COUPON": 600,
     "HYDROGEL_PACK": 200,
     "VELVETFRUIT": 200,
     "VELVETFRUIT_EXTRACT": 200,
