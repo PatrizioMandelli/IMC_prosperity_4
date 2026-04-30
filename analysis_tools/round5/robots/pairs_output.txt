@@ -1,0 +1,108 @@
+Caricamento dati da C:\Users\emanu\Documents\GitHub\prosperity4_prep\data\round5...
+
+>>> ROBOT vs ROBOT PAIRS (3 days)
+
+
+>>> ROBOT vs BASKET (other robots) - 3 days
+
+TARGET                   R2    ADF_p      STD       HL
+ROBOT_MOPPING         0.791   0.0049   350.32      584
+    beta ROBOT_VACUUMING: -0.6003
+    beta ROBOT_DISHES: -0.5459
+    beta ROBOT_LAUNDRY: -0.3339
+    beta ROBOT_IRONING: -0.5437
+    alpha: 30082.6013
+ROBOT_VACUUMING       0.774   0.0064   254.60      695
+    beta ROBOT_MOPPING: -0.3171
+    beta ROBOT_DISHES: -0.2870
+    beta ROBOT_LAUNDRY: +0.1621
+    beta ROBOT_IRONING: +0.0577
+    alpha: 13467.0592
+ROBOT_DISHES          0.673   0.0068   318.08      363
+    beta ROBOT_VACUUMING: -0.4480
+    beta ROBOT_MOPPING: -0.4501
+    beta ROBOT_LAUNDRY: -0.4465
+    beta ROBOT_IRONING: -0.3270
+    alpha: 26351.8561
+ROBOT_LAUNDRY         0.729   0.0217   319.64      806
+    beta ROBOT_VACUUMING: +0.2555
+    beta ROBOT_MOPPING: -0.2780
+    beta ROBOT_DISHES: -0.4509
+    beta ROBOT_IRONING: +0.0117
+    alpha: 14981.2505
+ROBOT_IRONING         0.771   0.0322   369.08      840
+    beta ROBOT_VACUUMING: +0.1213
+    beta ROBOT_MOPPING: -0.6035
+    beta ROBOT_DISHES: -0.4403
+    beta ROBOT_LAUNDRY: +0.0157
+    alpha: 18545.6589
+
+>>> ROBOT vs ROBOTS+MICROCHIPS - 3 days
+
+
+ROBOT_VACUUMING: R2=0.852 ADF_p=0.0011 STD=205.94 HL=579
+    beta ROBOT_MOPPING: -0.1545
+    beta ROBOT_DISHES: +0.0903
+    beta ROBOT_LAUNDRY: +0.1119
+    beta ROBOT_IRONING: -0.1649
+    beta MICROCHIP_OVAL: +0.2225
+    beta MICROCHIP_SQUARE: -0.0966
+    alpha: 9805.9465
+
+ROBOT_MOPPING: R2=0.826 ADF_p=0.0015 STD=319.84 HL=484
+    beta ROBOT_VACUUMING: -0.3726
+    beta ROBOT_DISHES: -0.5293
+    beta ROBOT_LAUNDRY: -0.5493
+    beta ROBOT_IRONING: -0.5609
+    beta MICROCHIP_OVAL: +0.1404
+    beta MICROCHIP_SQUARE: +0.1295
+    alpha: 27185.8246
+
+ROBOT_DISHES: R2=0.788 ADF_p=0.0018 STD=256.39 HL=259
+    beta ROBOT_VACUUMING: +0.1399
+    beta ROBOT_MOPPING: -0.3401
+    beta ROBOT_LAUNDRY: -0.2639
+    beta ROBOT_IRONING: +0.0629
+    beta MICROCHIP_OVAL: -0.3051
+    beta MICROCHIP_SQUARE: +0.1087
+    alpha: 15573.1830
+
+ROBOT_LAUNDRY: R2=0.819 ADF_p=0.0045 STD=261.71 HL=643
+    beta ROBOT_VACUUMING: +0.1806
+    beta ROBOT_MOPPING: -0.3678
+    beta ROBOT_DISHES: -0.2749
+    beta ROBOT_IRONING: -0.2103
+    beta MICROCHIP_OVAL: +0.2668
+    beta MICROCHIP_SQUARE: +0.1176
+    alpha: 13052.7071
+
+ROBOT_IRONING: R2=0.864 ADF_p=0.0034 STD=284.45 HL=616
+    beta ROBOT_VACUUMING: -0.3145
+    beta ROBOT_MOPPING: -0.4436
+    beta ROBOT_DISHES: +0.0774
+    beta ROBOT_LAUNDRY: -0.2485
+    beta MICROCHIP_OVAL: +0.4676
+    beta MICROCHIP_SQUARE: -0.0158
+    alpha: 14563.1917
+
+====================================================================================================
+PAIR                                              R2    ADF_p  COINT_p      STD       HL    BETA
+====================================================================================================
+ROBOT_VACUUMING ~ ROBOT_LAUNDRY                0.620   0.0201   0.0701   329.94     1082   0.686
+ROBOT_VACUUMING ~ ROBOT_DISHES                 0.471   0.0301   0.0977   389.21      853  -0.660
+ROBOT_MOPPING ~ ROBOT_LAUNDRY                  0.509   0.0908   0.2325   537.53     1752  -0.891
+ROBOT_VACUUMING ~ ROBOT_MOPPING                0.618   0.0944   0.2395   330.91     1368  -0.548
+ROBOT_LAUNDRY ~ ROBOT_IRONING                  0.543   0.0997   0.2498   415.12     1632   0.587
+ROBOT_VACUUMING ~ ROBOT_IRONING                0.615   0.1001   0.2505   332.11     1377   0.544
+ROBOT_MOPPING ~ ROBOT_IRONING                  0.665   0.1082   0.2658   444.34     1408  -0.811
+ROBOT_DISHES ~ ROBOT_LAUNDRY                   0.523   0.1588   0.3527   384.37      609  -0.655
+ROBOT_DISHES ~ ROBOT_IRONING                   0.420   0.2631   0.4999   423.77      750  -0.468
+ROBOT_MOPPING ~ ROBOT_DISHES                   0.193   0.3278   0.5754   689.23     2357   0.605
+
+====================================================================================================
+BEST STATIONARY PAIRS (adf_p < 0.05) — config for trader:
+====================================================================================================
+# ROBOT_VACUUMING ~ ROBOT_LAUNDRY: HL=1082, std=329.94
+('ROBOT_VACUUMING', 'ROBOT_LAUNDRY', 2427.6145, 0.6861, -0.0000, 329.9444),
+# ROBOT_VACUUMING ~ ROBOT_DISHES: HL=853, std=389.21
+('ROBOT_VACUUMING', 'ROBOT_DISHES', 15780.0786, -0.6601, 0.0000, 389.2079),
