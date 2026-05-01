@@ -7,4 +7,5 @@ __pycache__/
 .claude
 
 # Ignore manual challenge trial scripts
-manual_challenges/trials
+manual_challenges/trialsmanual_challenges/round4/mc_cache/
+*.npz
