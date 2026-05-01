@@ -1,11 +1,13 @@
 import json
 from typing import Dict, List, Optional
+
 from datamodel import Order, TradingState
 
-# ── EMA regime ────────────────────────────────────────────────────────────
-ALPHA_REGIME = 0.00008   # HL ≈ ln(2)/0.0001 ≈ 7000 ticks
 
-# ── Seeds: medie calibrate data miner round 4 ─────────────────────────────
+# Regime EMA: half-life ~7000 ticks.
+ALPHA_REGIME = 0.00008
+
+# Seeds: data-mined averages from round 4.
 SEEDS: Dict[str, float] = {
     "VELVETFRUIT_EXTRACT": 5250.098,
     "HYDROGEL_PACK":       9990.807,
@@ -21,7 +23,6 @@ SEEDS: Dict[str, float] = {
     "VEV_6500":    0.5,
 }
 
-# ── Position limits ────────────────────────────────────────────────────────
 LIMITS: Dict[str, int] = {
     "VELVETFRUIT_EXTRACT": 200, "HYDROGEL_PACK": 200,
     "VEV_4000": 300, "VEV_4500": 300, "VEV_5000": 300,
@@ -30,7 +31,7 @@ LIMITS: Dict[str, int] = {
     "VEV_6000": 300, "VEV_6500": 300,
 }
 
-# ── Edge base (spread/2 + 0.5) ─────────────────────────────────────────────
+# Base edge (spread/2 + 0.5).
 EDGES: Dict[str, float] = {
     "VELVETFRUIT_EXTRACT":  3.0,
     "HYDROGEL_PACK":        8.4,
@@ -46,7 +47,7 @@ EDGES: Dict[str, float] = {
     "VEV_6500":             1.0,
 }
 
-# ── Edge floor: mai scendere sotto spread/2 (garantisce profitto sul crossing)
+# Edge floor: never drop below spread/2 (keeps the cross profitable).
 EDGES_FLOOR: Dict[str, float] = {
     "VELVETFRUIT_EXTRACT":  2.5,
     "HYDROGEL_PACK":        7.9,
@@ -62,11 +63,10 @@ EDGES_FLOOR: Dict[str, float] = {
     "VEV_6500":             0.5,
 }
 
-# ── Flow signal: spostamento dell'edge per trade informato ────────────────
-# PUSH = quanto abbassare l'edge nella direzione di Mark 14
-# (confermato dall'analisi che Mark 14 precede i movimenti su questi asset)
+# How much to shift the edge in the direction of an informed-flow signal.
+# Mark 14 has been shown to lead price on these symbols.
 PUSH_MAP: Dict[str, float] = {
-    "VEV_4000":     8.0,
+    "VEV_4000":      8.0,
     "HYDROGEL_PACK": 5.0,
 }
 
@@ -76,17 +76,18 @@ TAKER_MAX = 20
 def _vwap(depth) -> Optional[float]:
     if not depth.buy_orders or not depth.sell_orders:
         return None
-    bid_px  = max(depth.buy_orders)
-    ask_px  = min(depth.sell_orders)
+    bid_px = max(depth.buy_orders)
+    ask_px = min(depth.sell_orders)
     bid_vol = depth.buy_orders[bid_px]
     ask_vol = abs(depth.sell_orders[ask_px])
-    tot     = bid_vol + ask_vol
+    tot = bid_vol + ask_vol
     if tot == 0:
         return (bid_px + ask_px) / 2.0
     return (bid_px * bid_vol + ask_px * ask_vol) / tot
 
 
 class Trader:
+    """Mean-reversion taker with a Mark 14 / Mark 38 informed-flow edge tilt."""
 
     def run(self, state: TradingState):
         out: Dict[str, List[Order]] = {}
@@ -98,9 +99,7 @@ class Trader:
             except Exception:
                 pass
 
-        # ── Flow signal: accumula alpha per tick dagli scambi di mercato ──
-        # tick_alpha > 0 → segnale long (abbassa buy_edge, alza sell_edge)
-        # tick_alpha < 0 → segnale short (abbassa sell_edge, alza buy_edge)
+        # Per-tick alpha from observed market trades. Positive -> long bias.
         tick_alphas: Dict[str, float] = {}
         for product, trades in state.market_trades.items():
             if product not in PUSH_MAP:
@@ -108,16 +107,19 @@ class Trader:
             push = PUSH_MAP[product]
             signal = 0.0
             for trade in trades:
-                b = trade.buyer  or ""
+                b = trade.buyer or ""
                 s = trade.seller or ""
-                if   b == "Mark 14": signal += push   # informato long
-                elif s == "Mark 14": signal -= push   # informato short
-                elif b == "Mark 38": signal -= push   # noise long → sell contro
-                elif s == "Mark 38": signal += push   # noise short → buy contro
+                if b == "Mark 14":
+                    signal += push  # informed long
+                elif s == "Mark 14":
+                    signal -= push  # informed short
+                elif b == "Mark 38":
+                    signal -= push  # noise long: fade
+                elif s == "Mark 38":
+                    signal += push  # noise short: fade
             if signal != 0.0:
                 tick_alphas[product] = signal
 
-        # ── Core loop ─────────────────────────────────────────────────────
         for sym, seed in SEEDS.items():
             depth = state.order_depths.get(sym)
             if not depth:
@@ -131,16 +133,16 @@ class Trader:
             fair = (1 - ALPHA_REGIME) * fair + ALPHA_REGIME * vwap
             mem[sym] = fair
 
-            pos      = state.position.get(sym, 0)
-            limit    = LIMITS[sym]
-            edge     = EDGES[sym]
-            floor    = EDGES_FLOOR[sym]
+            pos = state.position.get(sym, 0)
+            limit = LIMITS[sym]
+            edge = EDGES[sym]
+            floor = EDGES_FLOOR[sym]
             best_bid = max(depth.buy_orders)
             best_ask = min(depth.sell_orders)
 
-            # Edge dinamico: floor garantisce di non pagare più dello spread
-            flow     = tick_alphas.get(sym, 0.0)
-            buy_edge  = max(floor, edge - flow)
+            # Floor protects against paying more than half the spread.
+            flow = tick_alphas.get(sym, 0.0)
+            buy_edge = max(floor, edge - flow)
             sell_edge = max(floor, edge + flow)
 
             orders: List[Order] = []

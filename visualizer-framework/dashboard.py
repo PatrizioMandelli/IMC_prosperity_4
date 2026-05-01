@@ -1,6 +1,6 @@
 """
 Prosperity 4 Universal Framework Dashboard
-Usage: streamlit run framework/dashboard.py
+Usage: streamlit run visualizer-framework/dashboard.py
 """
 
 import io

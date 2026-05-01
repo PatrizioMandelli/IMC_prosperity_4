@@ -1,57 +1,59 @@
 import json
 import math
-from datamodel import OrderDepth, TradingState, Order
 from typing import List
+
+from datamodel import OrderDepth, Order, TradingState
 
 
 class Trader:
+    """OU mean-reversion on fast-reverting GALAXY_SOUNDS products.
+
+    BLACK_HOLES (HL ~16861) and PLANETARY_RINGS (HL ~8455) are excluded since
+    their half-lives are too long for short-horizon mean reversion.
+    """
+
     def __init__(self):
-        # Solo prodotti con half-life corta (mean reversion veloce)
-        # Esclusi: BLACK_HOLES (HL~16861) e PLANETARY_RINGS (HL~8455)
         self.products = [
-            'GALAXY_SOUNDS_DARK_MATTER',   # HL ~1438
-            'GALAXY_SOUNDS_SOLAR_FLAMES',  # HL ~1732
-            'GALAXY_SOUNDS_SOLAR_WINDS',   # HL ~3479
+            "GALAXY_SOUNDS_DARK_MATTER",   # HL ~1438
+            "GALAXY_SOUNDS_SOLAR_FLAMES",  # HL ~1732
+            "GALAXY_SOUNDS_SOLAR_WINDS",   # HL ~3479
         ]
 
-        # Parametri Ornstein-Uhlenbeck stimati
+        # Estimated Ornstein-Uhlenbeck parameters per product.
         self.ou_mu = {
-            'GALAXY_SOUNDS_DARK_MATTER': 10245.34,
-            'GALAXY_SOUNDS_SOLAR_FLAMES': 11156.44,
-            'GALAXY_SOUNDS_SOLAR_WINDS':  10475.63,
+            "GALAXY_SOUNDS_DARK_MATTER":  10245.34,
+            "GALAXY_SOUNDS_SOLAR_FLAMES": 11156.44,
+            "GALAXY_SOUNDS_SOLAR_WINDS":  10475.63,
         }
         self.ou_sigma = {
-            'GALAXY_SOUNDS_DARK_MATTER': 32.17,
-            'GALAXY_SOUNDS_SOLAR_FLAMES': 35.45,
-            'GALAXY_SOUNDS_SOLAR_WINDS':  33.41,
+            "GALAXY_SOUNDS_DARK_MATTER":  32.17,
+            "GALAXY_SOUNDS_SOLAR_FLAMES": 35.45,
+            "GALAXY_SOUNDS_SOLAR_WINDS":  33.41,
         }
         self.ou_half_life = {
-            'GALAXY_SOUNDS_DARK_MATTER': 1438,
-            'GALAXY_SOUNDS_SOLAR_FLAMES': 1732,
-            'GALAXY_SOUNDS_SOLAR_WINDS':  3479,
+            "GALAXY_SOUNDS_DARK_MATTER":  1438,
+            "GALAXY_SOUNDS_SOLAR_FLAMES": 1732,
+            "GALAXY_SOUNDS_SOLAR_WINDS":  3479,
         }
 
-        # EMA finestra = half-life (stima coerente con il processo OU)
+        # EMA window matches the OU half-life.
         self.windows = {p: self.ou_half_life[p] for p in self.products}
 
         self.emas = {p: None for p in self.products}
         self.position_limit = 10
 
-        # Soglie z-score per scaling della posizione target
-        # |z| <= z_enter -> non entrare (vicini alla media)
-        # |z| >= z_full  -> posizione massima
-        self.z_enter = 0.6
-        self.z_full = 2.0
+        # Z-score thresholds for target-position scaling.
+        self.z_enter = 0.6  # below this we stay flat
+        self.z_full = 2.0   # at this we hit full size
 
-        # Peso del Mu OU rispetto all'EMA per il fair value (anchor)
-        # 0.0 = solo EMA, 1.0 = solo Mu
+        # Weight of ou_mu vs the EMA in the fair-value anchor.
         self.mu_anchor_weight = 0.35
 
     def _fair_value(self, product, ema):
         return ema * (1.0 - self.mu_anchor_weight) + self.ou_mu[product] * self.mu_anchor_weight
 
     def _target_position(self, z):
-        # z negativo (prezzo sotto media) -> long; z positivo -> short
+        # Negative z (cheap) -> long; positive z (rich) -> short.
         if abs(z) < self.z_enter:
             return 0
         sign = -1 if z > 0 else 1
@@ -74,12 +76,12 @@ class Trader:
             if product not in state.order_depths:
                 continue
 
-            order_depth: OrderDepth = state.order_depths[product]
-            if not order_depth.sell_orders or not order_depth.buy_orders:
+            depth: OrderDepth = state.order_depths[product]
+            if not depth.sell_orders or not depth.buy_orders:
                 continue
 
-            best_ask = min(order_depth.sell_orders.keys())
-            best_bid = max(order_depth.buy_orders.keys())
+            best_ask = min(depth.sell_orders.keys())
+            best_bid = max(depth.buy_orders.keys())
             mid_price = (best_bid + best_ask) / 2.0
 
             window = self.windows[product]
@@ -98,13 +100,12 @@ class Trader:
 
             orders: List[Order] = []
 
-            # Esecuzione: aggressiva quando z e' estremo, passiva altrimenti
+            # Aggressive when |z| is near the full-size threshold.
             aggressive = abs(z) >= self.z_full * 0.9
 
             if delta > 0:
-                # Comprare
                 if aggressive:
-                    qty = min(delta, -order_depth.sell_orders[best_ask])
+                    qty = min(delta, -depth.sell_orders[best_ask])
                     if qty > 0:
                         orders.append(Order(product, best_ask, qty))
                 else:
@@ -112,9 +113,8 @@ class Trader:
                     if bid_price < best_ask:
                         orders.append(Order(product, bid_price, delta))
             elif delta < 0:
-                # Vendere
                 if aggressive:
-                    qty = min(-delta, order_depth.buy_orders[best_bid])
+                    qty = min(-delta, depth.buy_orders[best_bid])
                     if qty > 0:
                         orders.append(Order(product, best_bid, -qty))
                 else:
@@ -122,7 +122,7 @@ class Trader:
                     if ask_price > best_bid:
                         orders.append(Order(product, ask_price, delta))
             else:
-                # Flat target: market making leggero attorno al fair value se gia' a target
+                # Flat target: light two-sided MM around the fair value.
                 if current_position == 0:
                     bid_price = min(best_bid + 1, math.floor(fair_value - sigma * 0.8))
                     ask_price = max(best_ask - 1, math.ceil(fair_value + sigma * 0.8))
@@ -133,5 +133,4 @@ class Trader:
 
             result[product] = orders
 
-        traderData = json.dumps(self.emas)
-        return result, 0, traderData
+        return result, 0, json.dumps(self.emas)

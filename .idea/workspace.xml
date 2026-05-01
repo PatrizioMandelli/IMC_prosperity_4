@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="e87d3234-99e3-4287-8530-ac6e4801396b" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/my_bot/round1/main_trader.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/my_bot/round2/main_trader.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/my_bot/round4/ema_OU_velvet_trader.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/my_bot/round5/tora_oxygen_trader.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/my_bot/round5/tora_panel_trader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/prosperity4_prep.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/analysis_tools/reports/GALAXY_cross_cluster_final.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/analysis_tools/reports/TRANSLATOR_final_analysis.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/analysis_tools/reports/galaxy_final_analysis.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/analysis_tools/reports/pebbles_final_analysis.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/analysis_tools/reports/robot_final_analysis.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/framework/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/visualizer-framework/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/framework/arbitrage/basket.py" beforeDir="false" afterPath="$PROJECT_DIR$/visualizer-framework/arbitrage/basket.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/framework/charts/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/visualizer-framework/charts/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/framework/charts/arbitrage_panels.py" beforeDir="false" afterPath="$PROJECT_DIR$/visualizer-framework/charts/arbitrage_panels.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/framework/charts/bot_report.py" beforeDir="false" afterPath="$PROJECT_DIR$/visualizer-framework/charts/bot_report.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/framework/charts/heatmap.py" beforeDir="false" afterPath="$PROJECT_DIR$/visualizer-framework/charts/heatmap.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/framework/charts/quant_panels.py" beforeDir="false" afterPath="$PROJECT_DIR$/visualizer-framework/charts/quant_panels.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/framework/dashboard.py" beforeDir="false" afterPath="$PROJECT_DIR$/visualizer-framework/dashboard.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/framework/detectors/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/visualizer-framework/detectors/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/framework/detectors/base.py" beforeDir="false" afterPath="$PROJECT_DIR$/visualizer-framework/detectors/base.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/framework/detectors/hidden_taker.py" beforeDir="false" afterPath="$PROJECT_DIR$/visualizer-framework/detectors/hidden_taker.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/framework/detectors/insider.py" beforeDir="false" afterPath="$PROJECT_DIR$/visualizer-framework/detectors/insider.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/framework/detectors/pseudo_directional.py" beforeDir="false" afterPath="$PROJECT_DIR$/visualizer-framework/detectors/pseudo_directional.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/framework/detectors/spoofing_detector.py" beforeDir="false" afterPath="$PROJECT_DIR$/visualizer-framework/detectors/spoofing_detector.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/framework/microstructure/toxicity.py" beforeDir="false" afterPath="$PROJECT_DIR$/visualizer-framework/microstructure/toxicity.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/framework/pipeline/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/visualizer-framework/pipeline/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/framework/pipeline/loader.py" beforeDir="false" afterPath="$PROJECT_DIR$/visualizer-framework/pipeline/loader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/framework/pipeline/normalizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/visualizer-framework/pipeline/normalizer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/framework/pipeline/registry.py" beforeDir="false" afterPath="$PROJECT_DIR$/visualizer-framework/pipeline/registry.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my_bot/round1/Emaflic_Osmium_Trader.py" beforeDir="false" afterPath="$PROJECT_DIR$/my_bot/round1/Emaflic_Osmium_Trader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my_bot/round1/Emaflic_Pepper_Trader.py" beforeDir="false" afterPath="$PROJECT_DIR$/my_bot/round1/Emaflic_Pepper_Trader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my_bot/round1/Tora_Osmium_Trader.py" beforeDir="false" afterPath="$PROJECT_DIR$/my_bot/round1/Tora_Osmium_Trader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my_bot/round1/Tora_Pepper_Trader.py" beforeDir="false" afterPath="$PROJECT_DIR$/my_bot/round1/Tora_Pepper_Trader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my_bot/round1/Toraflick_trader.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my_bot/round1/buyhold_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/my_bot/round1/buyhold_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my_bot/round2/Emaflic_Osmium_Trader.py" beforeDir="false" afterPath="$PROJECT_DIR$/my_bot/round2/Emaflic_Osmium_Trader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my_bot/round2/Main_scale_arbitrage_osmium_trader.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my_bot/round3/Hydro_velvet.py" beforeDir="false" afterPath="$PROJECT_DIR$/my_bot/round3/main_trader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my_bot/round4/EmaVelvet.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my_bot/round4/Tester.py" beforeDir="false" afterPath="$PROJECT_DIR$/my_bot/round4/main_trader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my_bot/round5/ema_chip_trader.py" beforeDir="false" afterPath="$PROJECT_DIR$/my_bot/round5/ema_chip_trader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my_bot/round5/ema_galaxy_trader.py" beforeDir="false" afterPath="$PROJECT_DIR$/my_bot/round5/ema_galaxy_trader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my_bot/round5/ema_oxygen_trader.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my_bot/round5/ema_panel_trader.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/my_bot/round5/ema_pebbles_trader.py" beforeDir="false" afterPath="$PROJECT_DIR$/my_bot/round5/ema_pebbles_trader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/my_bot/round5/ema_translator_trader.py" beforeDir="false" afterPath="$PROJECT_DIR$/my_bot/round5/tora_translator_trader.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/temp_tuning/bot_test.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/visualizer.py" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Emaflick&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/altorazzi/prosperity4_prep.git&quot;,
+    &quot;accountId&quot;: &quot;d336ac1c-fd44-45da-81b0-4b63b6db7a5b&quot;
+  }
+}</component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/my_bot/round5/uv_test.py" root0="FORCE_HIGHLIGHTING" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 0
+}</component>
+  <component name="ProjectId" id="3D1nx2vWChSPOxE5mq45dMSVdyJ" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.Pebble_comb_scanner.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Pebble_correlations_and_sum.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Pebble_individual_pattern.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Pebble_intraday.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Pebbles_beta.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Pebbles_johansen.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Pebbles_pattenr.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Pebbles_pattern.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Uv_beta.executor&quot;: &quot;Run&quot;,
+    &quot;Python.galaxy_OU.executor&quot;: &quot;Run&quot;,
+    &quot;Python.pebbles_means.executor&quot;: &quot;Run&quot;,
+    &quot;Python.reverting_param.executor&quot;: &quot;Run&quot;,
+    &quot;Python.robots_ols_solver.executor&quot;: &quot;Run&quot;,
+    &quot;Python.snackpack_ols_solver.executor&quot;: &quot;Run&quot;,
+    &quot;Python.uv_alpha_extractor.executor&quot;: &quot;Run&quot;,
+    &quot;Python.uv_book_depth.executor&quot;: &quot;Run&quot;,
+    &quot;Python.uv_book_imbalance.executor&quot;: &quot;Run&quot;,
+    &quot;Python.uv_cross_asset_analysis.executor&quot;: &quot;Run&quot;,
+    &quot;Python.uv_test.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;vcs.Git&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\emanu\Documents\GitHub\prosperity4_prep\analysis_tools\round5" />
+      <recent name="C:\Users\emanu\Documents\GitHub\prosperity4_prep\analysis_tools\round5\Pebbles" />
+    </key>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-b26f3e71634d-JavaScript-PY-251.26094.141" />
+        <option value="bundled-python-sdk-9f8e2b94138c-36ea0e71a18c-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-251.26094.141" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="e87d3234-99e3-4287-8530-ac6e4801396b" name="Changes" comment="" />
+      <created>1777458688289</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1777458688289</updated>
+      <workItem from="1777458689787" duration="9637000" />
+      <workItem from="1777473307744" duration="11977000" />
+      <workItem from="1777487873977" duration="3176000" />
+      <workItem from="1777491626378" duration="1608000" />
+      <workItem from="1777503715824" duration="13446000" />
+      <workItem from="1777539568508" duration="1972000" />
+      <workItem from="1777569586381" duration="1579000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/prosperity4_prep$Pebble_correlations_and_sum.coverage" NAME="Pebble_correlations_and_sum Coverage Results" MODIFIED="1777479275983" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/analysis_tools/round5" />
+    <SUITE FILE_PATH="coverage/prosperity4_prep$Pebble_comb_scanner.coverage" NAME="Pebble_comb_scanner Coverage Results" MODIFIED="1777479386416" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/analysis_tools/round5" />
+    <SUITE FILE_PATH="coverage/prosperity4_prep$Pebble_individual_pattern.coverage" NAME="Pebble_individual_pattern Coverage Results" MODIFIED="1777480062096" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/analysis_tools/round5" />
+    <SUITE FILE_PATH="coverage/prosperity4_prep$uv_test.coverage" NAME="uv_test Coverage Results" MODIFIED="1777482927958" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/my_bot/round5" />
+    <SUITE FILE_PATH="coverage/prosperity4_prep$uv_cross_asset_analysis.coverage" NAME="uv_cross_asset_analysis Coverage Results" MODIFIED="1777489150414" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/analysis_tools/round5/uv" />
+    <SUITE FILE_PATH="coverage/prosperity4_prep$snackpack_ols_solver.coverage" NAME="snackpack_ols_solver Coverage Results" MODIFIED="1777490689084" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/analysis_tools/round5/snackpack" />
+    <SUITE FILE_PATH="coverage/prosperity4_prep$Pebbles_pattern.coverage" NAME="Pebbles_pattern Coverage Results" MODIFIED="1777479574753" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/analysis_tools/round5" />
+    <SUITE FILE_PATH="coverage/prosperity4_prep$pebbles_means.coverage" NAME="pebbles_means Coverage Results" MODIFIED="1777479263452" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/analysis_tools/round5" />
+    <SUITE FILE_PATH="coverage/prosperity4_prep$uv_book_imbalance.coverage" NAME="uv_book_imbalance Coverage Results" MODIFIED="1777484586682" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/analysis_tools/round5/uv" />
+    <SUITE FILE_PATH="coverage/prosperity4_prep$robots_ols_solver.coverage" NAME="robots_ols_solver Coverage Results" MODIFIED="1777506647068" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/analysis_tools/round5/robots" />
+    <SUITE FILE_PATH="coverage/prosperity4_prep$uv_book_depth.coverage" NAME="uv_book_depth Coverage Results" MODIFIED="1777484878342" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/analysis_tools/round5/uv" />
+    <SUITE FILE_PATH="coverage/prosperity4_prep$galaxy_OU.coverage" NAME="galaxy_OU Coverage Results" MODIFIED="1777511231772" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/analysis_tools/round5/galaxy" />
+    <SUITE FILE_PATH="coverage/prosperity4_prep$reverting_param.coverage" NAME="reverting_param Coverage Results" MODIFIED="1777510020448" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/analysis_tools/galaxy" />
+    <SUITE FILE_PATH="coverage/prosperity4_prep$Pebbles_pattenr.coverage" NAME="Pebbles_pattenr Coverage Results" MODIFIED="1777478536844" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/analysis_tools/round5" />
+    <SUITE FILE_PATH="coverage/prosperity4_prep$Uv_beta.coverage" NAME="Uv_beta Coverage Results" MODIFIED="1777482751837" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/analysis_tools/round5/uv" />
+    <SUITE FILE_PATH="coverage/prosperity4_prep$Pebbles_johansen.coverage" NAME="Pebbles_johansen Coverage Results" MODIFIED="1777480703695" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/analysis_tools/round5/Pebbles" />
+    <SUITE FILE_PATH="coverage/prosperity4_prep$uv_alpha_extractor.coverage" NAME="uv_alpha_extractor Coverage Results" MODIFIED="1777483019937" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/analysis_tools/round5/uv" />
+    <SUITE FILE_PATH="coverage/prosperity4_prep$Pebble_intraday.coverage" NAME="Pebble_intraday Coverage Results" MODIFIED="1777480609858" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/analysis_tools/round5/Pebbles" />
+    <SUITE FILE_PATH="coverage/prosperity4_prep$Pebbles_beta.coverage" NAME="Pebbles_beta Coverage Results" MODIFIED="1777479873309" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/analysis_tools/round5" />
+  </component>
+</project>
