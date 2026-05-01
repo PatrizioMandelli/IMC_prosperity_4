@@ -5,3 +5,6 @@ __pycache__/
 # Ignore local backtest runs
 *.log
 .claude
+
+# Ignore manual challenge trial scripts
+manual_challenges/trials
