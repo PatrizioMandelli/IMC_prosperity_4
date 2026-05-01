@@ -5,7 +5,7 @@
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/release/python-3110/)
 
 > **Professional-grade algorithmic trading suite for the IMC Prosperity 4 global challenge.**  
-> Ranked in the top 1% globally, featuring an ensemble of statistical arbitrage, market making, and trend-following strategies.
+> Ranked in the top *% globally, featuring an ensemble of statistical arbitrage, market making, and trend-following strategies.
 
 ---
 
@@ -27,7 +27,7 @@ A custom **Streamlit** dashboard used to analyze submission logs and backtest re
 
 ---
 
-## 📈 Strategy Evolution by Round
+## 📈 Algorithmic strategy Evolution by Round
 
 ### 🪐 Rounds 1 & 2: The Intarian Outpost
 The objective was to qualify for Phase 2 by generating 200,000 XIRECs.
@@ -69,6 +69,44 @@ The system evolved into a namespaced master-orchestrator managing 10 distinct cl
 
 ---
 
+## 🧠 Manual Trading Challenges
+
+While our bots handled high-frequency execution, the **Manual Trading Challenges** required deep quantitative research into game theory, exotic option pricing, and constrained optimization.
+
+### Round 1: An Intarian Welcome (Auctions)
+- **Challenge**: Participating in single-price auctions for `DRYLAND_FLAX` and `EMBER_MUSHROOM` with a guaranteed merchant buyback.
+- **Strategy**: Developed a volume-profit sweep in `manual_challenges/round1/static_book_filler.py`. We simulated the clearing price mechanism to identify the optimal bid price that maximizes the spread against the buyback price while accounting for the trade fees (0.10 for Mushrooms).
+
+### Round 3: The Celestial Gardeners' Guild (Game Theory)
+- **Challenge**: Bidding against 50 counterparties with uniform reserve prices (670-920). A cubic penalty was applied for second bids below the population mean.
+- **Strategy**: Solved in `manual_challenges/round3/manual3.py` using a **Mean-Field Game** framework. We computed the symmetric Nash Equilibrium through three convergent paths:
+    - **Quantal Response Equilibrium (QRE)**: Logit-based fixed-point iteration.
+    - **Fictitious Play**: Perturbed best-response to empirical history.
+    - **Monte Carlo Replicator Dynamics**: Finite-population evolutionary simulation.
+- **Result**: Robust consensus bid (b1=700, b2=915) optimized for expected volume vs. penalty risk.
+
+### Round 4: Vanilla Just Isn’t Exotic Enough (Options)
+- **Challenge**: Portfolio optimization using `AETHER_CRYSTAL` spot, vanilla options, and exotic derivatives (Chooser, Binary, and Knock-out puts).
+- **Strategy**: Implemented a high-performance Monte Carlo search engine in `manual_challenges/round4/manual4.py`.
+    - **Global Search**: Explored 2M+ unique portfolios using coarse grid search and the **Cross-Entropy Method (CEM)**.
+    - **Risk Management**: Optimized for the **Sortino Ratio**, using downside semi-std to manage the non-linear risk of exotic payouts.
+    - **Greeks**: Used **Common Random Numbers (CRN)** to calculate bump-and-reprice Greeks (Delta, Gamma, Vega, Theta).
+
+### Round 5: Extra! Extra! (News & KKT)
+- **Challenge**: Distributing a 1,000,000 budget across 9 products based on asymmetric news catalysts, subject to a quadratic fee: `fee = (v/100)² * Budget`.
+- **Strategy**: Solved in `manual_challenges/round5/manual5.py`.
+    - **Analytical Optimum**: Used **Karush-Kuhn-Tucker (KKT)** conditions to derive the closed-form allocation: $a_i^* = (|\mu_i| - \lambda) / 2$.
+    - **Distribution Modeling**: Modeled catalysts using Jump-Diffusion, Markov regimes, and Bimodal distributions to estimate $|\mu_i|$ before applying the KKT allocation.
+
+---
+
+## 👥 Team & Credits
+
+- **Algorithmic Trading Systems**: Developed entirely by **Emanuele** and **Alessandro**.
+- **Manual Trading Challenges**: Research and strategy primarily led by **Patrizio** and **Tommaso**.
+
+---
+
 ## 🔬 Quantitative Research Pipeline (`analysis_tools/`)
 
 During Round 5, we conducted several advanced analyses to find our edge:
@@ -81,8 +119,8 @@ During Round 5, we conducted several advanced analyses to find our edge:
 
 ## 🏁 Final Results
 
-- **Global Standing**: Top 1% (out of 28.000 initial teams).
-- **National Standing**: #x (out of 400 initial teams)
+- **Global Standing**: Top *% (out of 28.000 initial teams).
+- **National Standing**: #* (out of 400 initial teams, top *%)
 - **Sharpe Ratio**: Consistently > 15 across core Stat-Arb modules.
 - **Daily Performance**: 100% profitable days in all 5 rounds backtests under "Worse-Match" conditions.
 
