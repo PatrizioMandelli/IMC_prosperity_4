@@ -119,8 +119,8 @@ During Round 5, we conducted several advanced analyses to find our edge:
 
 ## 🏁 Final Results
 
-- **Global Standing**: Top 3*% (out of 28.000 initial teams).
-- **National Standing**: 8#* (out of 400 initial teams, top *%)
+- **Global Standing**: Top 3% (out of 28.000 initial teams).
+- **National Standing**: 8# (out of 400 initial teams, top *%)
 - **Sharpe Ratio**: Consistently > 15 across core Stat-Arb modules.
 - **Daily Performance**: 100% profitable days in all 5 rounds backtests under "Worse-Match" conditions.
 
